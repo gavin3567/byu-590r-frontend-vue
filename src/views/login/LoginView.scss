@@ -1,1 +1,39 @@
 @use '@/assets/styles/ui.scss';
+
+// Raw SCSS for login form positioning
+.login-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  width: 100%;
+}
+
+.login-form-container {
+  width: 100%;
+  max-width: 600px; // Increased from 400px to 600px for wider login form
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+// Raw SCSS for form fields and buttons layout
+.form-fields {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  gap: 24px;
+
+  .v-text-field {
+    margin-bottom: 0;
+  }
+}
+
+// Raw SCSS for button container
+.button-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  margin-top: 8px;
+}
