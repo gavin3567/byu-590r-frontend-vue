@@ -125,6 +125,13 @@
           <v-card-text>
             <v-form v-model="passwordResetFormIsValid">
               <div class="d-flex flex-column align-center justify-center pa-4" style="width: 100%">
+                <v-alert
+                  v-if="forgotPasswordSuccess"
+                  type="success"
+                  text="Password reset instructions have been sent to your email. Please check your inbox for the reset token."
+                  class="mb-4"
+                />
+
                 <v-text-field
                   v-model="forgotEmail"
                   label="Email"
@@ -132,23 +139,33 @@
                   :rules="emailRules"
                   class="mb-4"
                   style="min-width: 550px"
+                  :disabled="forgotPasswordSuccess"
                 />
-                <v-btn
-                  color="primary"
-                  block
-                  variant="text"
-                  :loading="submitForgotPasswordLoading"
-                  :disabled="!passwordResetFormIsValid"
-                  @click="submitForgotPassword()"
-                >
-                  Reset Password
-                </v-btn>
+
+                <div v-if="!forgotPasswordSuccess">
+                  <v-btn
+                    color="primary"
+                    block
+                    variant="text"
+                    :loading="submitForgotPasswordLoading"
+                    :disabled="!passwordResetFormIsValid"
+                    @click="submitForgotPassword()"
+                  >
+                    Send Reset Instructions
+                  </v-btn>
+                </div>
+
+                <div v-else>
+                  <v-btn color="primary" block @click="goToResetPassword" class="mt-3">
+                    Go to Reset Password Page
+                  </v-btn>
+                </div>
               </div>
             </v-form>
           </v-card-text>
           <v-card-actions>
             <v-spacer />
-            <v-btn color="grey" text @click="passwordResetDialog = false"> Close </v-btn>
+            <v-btn color="grey" text @click="closePasswordResetDialog"> Close </v-btn>
           </v-card-actions>
         </v-card>
       </v-dialog>

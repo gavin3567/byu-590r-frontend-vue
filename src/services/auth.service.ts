@@ -40,7 +40,20 @@ class AuthService {
     console.log('inside service -- ', forgotEmail)
     let formData = new FormData()
     formData.append('email', forgotEmail)
+    // Use the forgot_password endpoint
     return axios.post(API_URL + 'forgot_password', formData).then((response) => {
+      return response.data
+    })
+  }
+
+  resetPassword(resetData) {
+    let formData = new FormData()
+    formData.append('email', resetData.email)
+    formData.append('token', resetData.token)
+    formData.append('password', resetData.password)
+    formData.append('c_password', resetData.c_password)
+
+    return axios.post(API_URL + 'reset_password', formData).then((response) => {
       return response.data
     })
   }

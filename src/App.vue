@@ -2,7 +2,7 @@
 import { RouterLink, RouterView } from 'vue-router'
 import LoginView from './views/login/LoginView.vue'
 import { mapState } from 'vuex'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 export default {
   setup() {
     const theme = ref('dark')
@@ -17,51 +17,53 @@ export default {
     RouterLink,
     RouterView,
   },
-  computed: mapState({
-    authUser() {
-      return this.$store.state.auth.user
-    },
-    isAuthenticated() {
-      // Check directly from localStorage as a fallback
-      const storedUser = localStorage.getItem('user')
-      let user = null
-
-      try {
-        if (storedUser) {
-          user = JSON.parse(storedUser)
+  computed: {
+    ...mapState({
+      authUser() {
+        return this.$store.state.auth.user
+      },
+      isAuthenticated() {
+        // Check directly from localStorage as a fallback
+        const storedUser = localStorage.getItem('user')
+        let user = null
+        try {
+          if (storedUser) {
+            user = JSON.parse(storedUser)
+          }
+        } catch (e) {
+          console.error('Error parsing user from localStorage:', e)
         }
-      } catch (e) {
-        console.error('Error parsing user from localStorage:', e)
-      }
-
-      const storeAuth =
-        this.$store.state.auth.status.loggedIn &&
-        this.authUser &&
-        typeof this.authUser === 'object' &&
-        'token' in this.authUser
-
-      const localAuth = user && typeof user === 'object' && 'token' in user
-
-      return storeAuth || localAuth
+        const storeAuth =
+          this.$store.state.auth.status.loggedIn &&
+          this.authUser &&
+          typeof this.authUser === 'object' &&
+          'token' in this.authUser
+        const localAuth = user && typeof user === 'object' && 'token' in user
+        return storeAuth || localAuth
+      },
+      title() {
+        return this.authUser && this.authUser.name ? 'Welcome ' + this.authUser.name + '!' : ''
+      },
+      userInitials() {
+        if (!this.authUser || !this.authUser.name) {
+          return this.authUser && this.authUser.email ? this.authUser.email[0].toUpperCase() : '?'
+        }
+        const nameParts = this.authUser.name.split(' ')
+        if (nameParts.length > 1) {
+          return (nameParts[0][0] + nameParts[nameParts.length - 1][0]).toUpperCase()
+        } else {
+          return nameParts[0][0].toUpperCase()
+        }
+      },
+    }),
+    // Check if current route is the reset password page
+    isResetPasswordRoute() {
+      return this.$route.path === '/reset-password'
     },
-    title() {
-      return this.authUser && this.authUser.name ? 'Welcome ' + this.authUser.name + '!' : ''
-    },
-    userInitials() {
-      if (!this.authUser || !this.authUser.name) {
-        return this.authUser && this.authUser.email ? this.authUser.email[0].toUpperCase() : '?'
-      }
-      const nameParts = this.authUser.name.split(' ')
-      if (nameParts.length > 1) {
-        return (nameParts[0][0] + nameParts[nameParts.length - 1][0]).toUpperCase()
-      } else {
-        return nameParts[0][0].toUpperCase()
-      }
-    },
-  }),
+  },
   updated() {
-    if (this.isAuthenticated) {
-      // Navigate to root path (home component)
+    // Only redirect to home if authenticated and not on reset password page
+    if (this.isAuthenticated && !this.isResetPasswordRoute) {
       this.$router.push('/')
     }
   },
@@ -76,7 +78,6 @@ export default {
         console.log('Navigating to home...')
         // First update our local authentication state before navigation
         this.$store.state.auth.status.loggedIn = true
-
         // Force reload to update authentication status everywhere
         window.location.reload()
       }
@@ -105,9 +106,9 @@ export default {
     </v-app-bar>
     <v-main>
       <v-container>
-        <div v-if="isAuthenticated">
-          <RouterView />
-        </div>
+        <!-- Show the router view for authenticated users and reset password route -->
+        <RouterView v-if="isAuthenticated || isResetPasswordRoute" />
+        <!-- Show login view for unauthenticated users on other routes -->
         <LoginView v-else :is-authenticated="isAuthenticated" @authenticate="checkAuth($event)" />
       </v-container>
     </v-main>

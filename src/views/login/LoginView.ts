@@ -35,6 +35,7 @@ export default defineComponent({
       passwordResetDialog: false,
       forgotEmail: '',
       submitForgotPasswordLoading: false,
+      forgotPasswordSuccess: false,
 
       // Validation rules
       emailRules: [
@@ -78,11 +79,11 @@ export default defineComponent({
           this.successMsg = 'Login successful! Redirecting...'
           this.isLoading = false
 
-          // Force redirect after a short delay
+          // Force direct navigation to root (which is your home route)
           setTimeout(() => {
             this.$emit('authenticate', true)
-            // Navigate to home using router
-            this.$router.push('/home')
+            // Use browser navigation to force a clean redirect
+            window.location.href = '/'
           }, 1500)
         },
         (error) => {
@@ -140,7 +141,7 @@ export default defineComponent({
         (response) => {
           this.successMsg = 'Password reset instructions sent to your email!'
           this.submitForgotPasswordLoading = false
-          this.passwordResetDialog = false
+          this.forgotPasswordSuccess = true
         },
         (error) => {
           this.submitForgotPasswordLoading = false
@@ -150,6 +151,21 @@ export default defineComponent({
             error.toString()
         }
       )
+    },
+
+    closePasswordResetDialog() {
+      this.passwordResetDialog = false
+      // Reset state when closing dialog
+      if (this.forgotPasswordSuccess) {
+        this.forgotPasswordSuccess = false
+        this.forgotEmail = ''
+      }
+    },
+
+    goToResetPassword() {
+      this.passwordResetDialog = false
+      // Force a full page navigation instead of router push
+      window.location.href = window.location.origin + '/reset-password'
     },
   },
 })
