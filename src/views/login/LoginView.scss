@@ -1,39 +1,114 @@
 @use '@/assets/styles/ui.scss';
 
-// Raw SCSS for login form positioning
+// Login page layout
 .login-page {
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start;
   min-height: 100vh;
   width: 100%;
+  background-color: #121212;
+  padding: 40px 16px;
 }
 
 .login-form-container {
   width: 100%;
-  max-width: 600px; // Increased from 400px to 600px for wider login form
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  max-width: 500px;
+  color: white;
 }
 
-// Raw SCSS for form fields and buttons layout
+.login-title {
+  font-size: 24px;
+  font-weight: 500;
+  margin-bottom: 20px;
+}
+
+// Form fields
 .form-fields {
   display: flex;
   flex-direction: column;
   width: 100%;
-  gap: 24px;
+  gap: 16px;
 
   .v-text-field {
     margin-bottom: 0;
+
+    :deep(.v-field__input) {
+      color: white !important;
+    }
+
+    :deep(.v-field__outline) {
+      color: #444 !important;
+    }
+
+    :deep(.v-field__prepend-inner) {
+      color: white !important;
+    }
+
+    :deep(.v-label) {
+      color: rgba(255, 255, 255, 0.7) !important;
+    }
   }
 }
 
-// Raw SCSS for button container
+// Button layout
+.button-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin-top: 24px;
+}
+
+.login-btn {
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 400;
+  height: 44px;
+  padding: 0 20px;
+  border-radius: 0;
+  background-color: #333 !important;
+
+  &:hover {
+    background-color: #444 !important;
+  }
+}
+
+.secondary-buttons {
+  display: flex;
+  margin-left: 20px;
+}
+
+.secondary-btn {
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 400;
+  height: 44px;
+  padding: 0 20px;
+  border-radius: 0;
+  color: #aaa !important;
+
+  &:hover {
+    color: white !important;
+  }
+}
+
+// Original button container (keeping for compatibility)
 .button-container {
   display: flex;
   flex-direction: column;
   gap: 16px;
   width: 100%;
   margin-top: 8px;
+}
+
+// Dialog styles
+.v-dialog {
+  .v-card {
+    background-color: #1e1e1e;
+    color: white;
+
+    .v-card-title {
+      color: white;
+    }
+  }
 }

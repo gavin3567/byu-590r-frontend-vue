@@ -11,23 +11,39 @@ export default defineComponent({
   emits: ['authenticate'],
   data() {
     return {
-      showLoginForm: false,
-      isValid: false,
-      username: '',
+      showLoginForm: true,
+      isFormValid: false,
+      isRegisterFormValid: false,
+      passwordResetFormIsValid: false,
+      email: '',
       password: '',
-      loading: false,
-      resetEmail: '',
-      forgotPasswordDialog: false,
-      hardcodedUsername: 'BYU',
-      hardcodedPassword: 'CosmoCougar1',
-      loginStatus: {
-        show: false,
-        type: '',
-        message: '',
+      isLoading: false,
+      errorMsg: '',
+      successMsg: '',
+
+      // Register dialog
+      registerDialog: false,
+      registerFormIsLoading: false,
+      register: {
+        name: '',
+        email: '',
+        password: '',
+        c_password: '',
       },
-      usernameRules: [
-        (v: string) => !!v || 'Username is required',
-        (v: string) => v.length >= 3 || 'Min 3 characters',
+
+      // Password reset
+      passwordResetDialog: false,
+      forgotEmail: '',
+      submitForgotPasswordLoading: false,
+
+      // Validation rules
+      emailRules: [
+        (v: string) => !!v || 'Email is required',
+        (v: string) => /.+@.+\..+/.test(v) || 'Email must be valid',
+      ],
+      nameRules: [
+        (v: string) => !!v || 'Name is required',
+        (v: string) => v.length >= 3 || 'Name must be at least 3 characters',
       ],
       passwordRules: [
         (v: string) => !!v || 'Password is required',
@@ -35,37 +51,105 @@ export default defineComponent({
       ],
     }
   },
+  computed: {
+    confirmPasswordRules() {
+      return [
+        (v: string) => !!v || 'Password confirmation is required',
+        (v: string) => v === this.register.password || 'Passwords must match',
+      ]
+    },
+  },
   methods: {
     submitLogin() {
-      if (!this.showLoginForm) {
-        this.showLoginForm = true
+      if (!this.isFormValid) {
         return
       }
 
-      this.loginStatus.show = true
+      const user = {
+        email: this.email,
+        password: this.password,
+      }
 
-      if (this.password === this.username) {
-        this.loginStatus.type = 'warning'
-        this.loginStatus.message = 'Your username and password can not be the same!'
+      this.errorMsg = ''
+      this.isLoading = true
+
+      this.$store.dispatch('auth/login', user).then(
+        (response) => {
+          this.successMsg = 'Login successful! Redirecting...'
+          this.isLoading = false
+
+          // Force redirect after a short delay
+          setTimeout(() => {
+            this.$emit('authenticate', true)
+            // Navigate to home using router
+            this.$router.push('/home')
+          }, 1500)
+        },
+        (error) => {
+          this.isLoading = false
+          this.errorMsg =
+            (error.response && error.response.data && error.response.data.message) ||
+            error.message ||
+            error.toString()
+        }
+      )
+    },
+
+    submitRegister() {
+      if (!this.isRegisterFormValid) {
         return
       }
 
-      if (this.username !== this.hardcodedUsername || this.password !== this.hardcodedPassword) {
-        this.loginStatus.type = 'error'
-        this.loginStatus.message = 'Login Failed! Can not Authenticate!'
+      const register = {
+        name: this.register.name,
+        email: this.register.email,
+        password: this.register.password,
+        c_password: this.register.c_password,
+      }
+
+      this.registerFormIsLoading = true
+
+      this.$store.dispatch('auth/register', register).then(
+        (response) => {
+          this.successMsg = 'Registration successful!'
+          this.registerFormIsLoading = false
+          this.registerDialog = false
+
+          // Auto-fill login fields with registration data
+          this.email = register.email
+          this.password = register.password
+        },
+        (error) => {
+          this.registerFormIsLoading = false
+          this.errorMsg =
+            (error.response && error.response.data && error.response.data.message) ||
+            error.message ||
+            error.toString()
+        }
+      )
+    },
+
+    submitForgotPassword() {
+      if (!this.passwordResetFormIsValid) {
         return
       }
 
-      // Successful login
-      this.loading = true
-      this.loginStatus.type = 'success'
-      this.loginStatus.message = 'Login Success. Redirecting!'
+      this.submitForgotPasswordLoading = true
 
-      setTimeout(() => {
-        this.$emit('authenticate', true)
-        // Navigate to home page
-        this.$router.push('')
-      }, 3000)
+      this.$store.dispatch('auth/forgotPassword', this.forgotEmail).then(
+        (response) => {
+          this.successMsg = 'Password reset instructions sent to your email!'
+          this.submitForgotPasswordLoading = false
+          this.passwordResetDialog = false
+        },
+        (error) => {
+          this.submitForgotPasswordLoading = false
+          this.errorMsg =
+            (error.response && error.response.data && error.response.data.message) ||
+            error.message ||
+            error.toString()
+        }
+      )
     },
   },
 })
