@@ -3,6 +3,7 @@ import { RouterLink, RouterView } from 'vue-router'
 import LoginView from './views/login/LoginView.vue'
 import { mapState } from 'vuex'
 import { ref, computed } from 'vue'
+
 export default {
   setup() {
     const theme = ref('dark')
@@ -17,53 +18,78 @@ export default {
     RouterLink,
     RouterView,
   },
+  data: function () {
+    return {
+      profileDialog: false,
+      profileIsUploading: false,
+      verificationEmailLoading: false,
+      showEmailNotVerifiedDialog: false,
+      showChangeEmailTextField: false,
+      changeEmail: false,
+      successVerificationMessage: '',
+      changeEmailRules: [
+        (value) => !!value || 'Required.',
+        (value) => (value && value.length >= 3) || 'Min 3 characters',
+      ],
+      profile: {
+        avatar: '',
+        name: '',
+        title: '',
+        icon: 'mdi-account-circle',
+        color: 'info',
+      },
+      profilePictureImage: '',
+      emailOfVerification: '',
+    }
+  },
   computed: {
     ...mapState({
-      authUser() {
-        return this.$store.state.auth.user
+      user() {
+        return this.$store.state.user.user
       },
-      isAuthenticated() {
-        // Check directly from localStorage as a fallback
-        const storedUser = localStorage.getItem('user')
-        let user = null
-        try {
-          if (storedUser) {
-            user = JSON.parse(storedUser)
-          }
-        } catch (e) {
-          console.error('Error parsing user from localStorage:', e)
-        }
-        const storeAuth =
-          this.$store.state.auth.status.loggedIn &&
-          this.authUser &&
-          typeof this.authUser === 'object' &&
-          'token' in this.authUser
-        const localAuth = user && typeof user === 'object' && 'token' in user
-        return storeAuth || localAuth
+      auth() {
+        return this.$store.state.auth
+      },
+      authUser() {
+        return this.auth.user
+      },
+      isAuthenticated(): boolean {
+        return !!(this.auth.status.loggedIn && this.authUser && this.authUser.token !== undefined)
       },
       title() {
-        return this.authUser && this.authUser.name ? 'Welcome ' + this.authUser.name + '!' : ''
+        return 'Welcome ' + this.authUser.name + '!'
       },
-      userInitials() {
-        if (!this.authUser || !this.authUser.name) {
-          return this.authUser && this.authUser.email ? this.authUser.email[0].toUpperCase() : '?'
-        }
-        const nameParts = this.authUser.name.split(' ')
-        if (nameParts.length > 1) {
-          return (nameParts[0][0] + nameParts[nameParts.length - 1][0]).toUpperCase()
-        } else {
-          return nameParts[0][0].toUpperCase()
-        }
+      avatarURL() {
+        return this.auth.user.avatar
+      },
+      profilePictureChangeLabel() {
+        return 'Profile picture change22'
       },
     }),
     // Check if current route is the reset password page
     isResetPasswordRoute() {
       return this.$route.path === '/reset-password'
     },
+    userInitials() {
+      if (!this.authUser || !this.authUser.name) {
+        return this.authUser && this.authUser.email ? this.authUser.email[0].toUpperCase() : '?'
+      }
+      const nameParts = this.authUser.name.split(' ')
+      if (nameParts.length > 1) {
+        return (nameParts[0][0] + nameParts[nameParts.length - 1][0]).toUpperCase()
+      } else {
+        return nameParts[0][0].toUpperCase()
+      }
+    },
+  },
+  created() {
+    if (this.authUser) {
+      this.getCurrentUser()
+    }
   },
   updated() {
     // Only redirect to home if authenticated and not on reset password page
-    if (this.isAuthenticated && !this.isResetPasswordRoute) {
+    if (this.isAuthenticated === true && !this.isResetPasswordRoute) {
       this.$router.push('/')
     }
   },
@@ -82,9 +108,52 @@ export default {
         window.location.reload()
       }
     },
+    onAvatarChange(e) {
+      var image = e.target.files || e.dataTransfer.files
+      if (!image.length) return
+      this.profileIsUploading = true
+      this.$store
+        .dispatch('user/uploadAvatar', image[0], { root: true })
+        .then((response) => {
+          this.$store.commit('auth/uploadAvatarSuccess', response.avatar)
+          this.profileIsUploading = false
+        })
+        .catch((error) => {
+          console.log(error)
+          alert('Error. Try again')
+          this.profileIsUploading = false
+        })
+    },
+    removeAvatar() {
+      this.profileIsUploading = true
+      this.$store
+        .dispatch('user/removeAvatar')
+        .then((response) => {
+          this.$store.commit('auth/uploadAvatarSuccess', response.avatar)
+          this.profileIsUploading = false
+        })
+        .catch((error) => {
+          console.log(error)
+          alert('Error. Try again')
+          this.profileIsUploading = false
+        })
+    },
+    getCurrentUser() {
+      this.profile.name = this.authUser.name
+      this.profile.title = this.title
+      this.$store.dispatch('user/getUser').then((response) => {
+        if (response.avatar) {
+          this.$store.commit('auth/uploadAvatarSuccess', response.avatar)
+        }
+        if (!response.email_verified_at) {
+          this.showEmailNotVerifiedDialog = true
+        }
+      })
+    },
   },
 }
 </script>
+
 <template>
   <v-app :theme="theme">
     <!-- App Bar when authenticated -->
@@ -107,13 +176,14 @@ export default {
     <v-main>
       <v-container>
         <!-- Show the router view for authenticated users and reset password route -->
-        <RouterView v-if="isAuthenticated || isResetPasswordRoute" />
+        <RouterView v-if="isAuthenticated === true || isResetPasswordRoute" />
         <!-- Show login view for unauthenticated users on other routes -->
-        <LoginView v-else :is-authenticated="isAuthenticated" @authenticate="checkAuth($event)" />
+        <LoginView v-else :is-authenticated="!!isAuthenticated" @authenticate="checkAuth($event)" />
       </v-container>
     </v-main>
   </v-app>
 </template>
+
 <style>
 /* Global styles */
 body {
