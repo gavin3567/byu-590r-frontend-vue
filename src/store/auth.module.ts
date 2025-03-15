@@ -1,12 +1,9 @@
 import authService from '../services/auth.service'
-
 const storedUser = localStorage.getItem('user')
 const user = storedUser ? JSON.parse(storedUser) : null
-
 const initialState = user
   ? { status: { loggedIn: true }, user }
   : { status: { loggedIn: false }, user: null }
-
 export const auth = {
   namespaced: true,
   state: initialState,
@@ -74,10 +71,12 @@ export const auth = {
     forgotPasswordSuccess(state) {
       state.status.loggedIn = false
     },
-    // Add this mutation
+    // Add this mutation for avatar updates
     uploadAvatarSuccess(state, avatarUrl) {
       if (state.user) {
         state.user.avatar = avatarUrl
+        // Update localStorage to persist the avatar URL across sessions
+        localStorage.setItem('user', JSON.stringify(state.user))
       }
     },
   },

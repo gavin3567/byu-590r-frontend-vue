@@ -63,7 +63,7 @@ export default {
         return this.auth.user.avatar
       },
       profilePictureChangeLabel() {
-        return 'Profile picture change22'
+        return 'Profile picture change'
       },
     }),
     // Check if current route is the reset password page
@@ -113,7 +113,7 @@ export default {
       if (!image.length) return
       this.profileIsUploading = true
       this.$store
-        .dispatch('user/uploadAvatar', image[0], { root: true })
+        .dispatch('user/uploadAvatar', image[0])
         .then((response) => {
           this.$store.commit('auth/uploadAvatarSuccess', response.avatar)
           this.profileIsUploading = false
@@ -129,7 +129,7 @@ export default {
       this.$store
         .dispatch('user/removeAvatar')
         .then((response) => {
-          this.$store.commit('auth/uploadAvatarSuccess', response.avatar)
+          this.$store.commit('auth/uploadAvatarSuccess', null)
           this.profileIsUploading = false
         })
         .catch((error) => {
@@ -150,6 +150,23 @@ export default {
         }
       })
     },
+    openProfileDialog() {
+      this.profileDialog = true
+    },
+    sendVerificationEmail() {
+      this.verificationEmailLoading = true
+      this.$store
+        .dispatch('user/sendVerificationEmail')
+        .then(() => {
+          this.successVerificationMessage = 'Verification email sent successfully!'
+          this.verificationEmailLoading = false
+        })
+        .catch((error) => {
+          console.log(error)
+          alert('Error sending verification email. Please try again.')
+          this.verificationEmailLoading = false
+        })
+    },
   },
 }
 </script>
@@ -168,11 +185,109 @@ export default {
         Toggle Theme
       </v-btn>
       <v-btn @click="logout()">Logout</v-btn>
-      <!-- User avatar -->
-      <v-avatar color="primary" size="36" class="ml-4">
-        <span class="text-h6">{{ userInitials }}</span>
-      </v-avatar>
+
+      <!-- User avatar with dropdown menu -->
+      <v-menu>
+        <template v-slot:activator="{ props }">
+          <v-avatar v-bind="props" color="primary" size="36" class="ml-4" style="cursor: pointer">
+            <!-- Show avatar if exists -->
+            <v-img v-if="avatarURL" :src="avatarURL" alt="User Avatar"></v-img>
+            <!-- Show user initials if no avatar -->
+            <span v-else class="text-h6">{{ userInitials }}</span>
+          </v-avatar>
+        </template>
+
+        <v-card min-width="200">
+          <v-card-title>Profile</v-card-title>
+          <v-card-text>
+            <p class="mb-2">{{ authUser.name }}</p>
+            <p class="text-caption mb-4">{{ authUser.email }}</p>
+
+            <v-btn color="primary" block @click="openProfileDialog"> Edit Profile </v-btn>
+          </v-card-text>
+        </v-card>
+      </v-menu>
     </v-app-bar>
+
+    <!-- Profile Dialog -->
+    <v-dialog v-model="profileDialog" max-width="500">
+      <v-card>
+        <v-card-title>Edit Profile</v-card-title>
+        <v-card-text>
+          <div class="text-center mb-4">
+            <v-avatar size="100" class="mb-3 position-relative">
+              <!-- Avatar display with loading animation -->
+              <v-img
+                v-if="avatarURL && !profileIsUploading"
+                :src="avatarURL"
+                alt="User Avatar"
+              ></v-img>
+              <v-icon v-else-if="!profileIsUploading" size="80" color="grey"
+                >mdi-account-circle</v-icon
+              >
+
+              <!-- Loading overlay -->
+              <v-overlay
+                v-if="profileIsUploading"
+                :model-value="profileIsUploading"
+                class="align-center justify-center"
+              >
+                <v-progress-circular indeterminate color="primary"></v-progress-circular>
+              </v-overlay>
+            </v-avatar>
+
+            <div>
+              <v-file-input
+                accept="image/*"
+                label="Change avatar"
+                prepend-icon="mdi-camera"
+                @change="onAvatarChange"
+                hide-input
+                class="d-inline-block"
+                :disabled="profileIsUploading"
+              ></v-file-input>
+
+              <v-btn
+                v-if="avatarURL"
+                color="error"
+                icon
+                @click="removeAvatar"
+                :loading="profileIsUploading"
+                :disabled="profileIsUploading"
+              >
+                <v-icon>mdi-delete</v-icon>
+              </v-btn>
+            </div>
+          </div>
+
+          <!-- Email verification section -->
+          <v-alert
+            v-if="showEmailNotVerifiedDialog"
+            type="warning"
+            title="Email not verified"
+            text="Please verify your email address to access all features."
+            class="mb-4"
+          >
+            <v-btn
+              color="warning"
+              @click="sendVerificationEmail"
+              :loading="verificationEmailLoading"
+              block
+            >
+              Send verification email
+            </v-btn>
+            <div v-if="successVerificationMessage" class="text-success mt-2">
+              {{ successVerificationMessage }}
+            </div>
+          </v-alert>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="primary" @click="profileDialog = false">Close</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
     <v-main>
       <v-container>
         <!-- Show the router view for authenticated users and reset password route -->
@@ -189,5 +304,9 @@ export default {
 body {
   background-color: #121212;
   color: white;
+}
+
+.position-relative {
+  position: relative;
 }
 </style>
