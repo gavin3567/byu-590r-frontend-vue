@@ -264,26 +264,28 @@ export default {
             </div>
           </div>
 
-          <!-- Email verification section -->
-          <v-alert
-            v-if="showEmailNotVerifiedDialog"
-            type="warning"
-            title="Email not verified"
-            text="Please verify your email address to access all features."
-            class="mb-4"
-          >
-            <v-btn
-              color="warning"
-              @click="sendVerificationEmail"
-              :loading="verificationEmailLoading"
-              block
+          <!-- Email verification section - Moved below the avatar upload area with margin-top -->
+          <div class="email-verification-container">
+            <v-alert
+              v-if="showEmailNotVerifiedDialog"
+              type="warning"
+              title="Email not verified"
+              text="Please verify your email address to access all features."
+              class="mb-4 mt-6"
             >
-              Send verification email
-            </v-btn>
-            <div v-if="successVerificationMessage" class="text-success mt-2">
-              {{ successVerificationMessage }}
-            </div>
-          </v-alert>
+              <v-btn
+                color="warning"
+                @click="sendVerificationEmail"
+                :loading="verificationEmailLoading"
+                block
+              >
+                Send verification email
+              </v-btn>
+              <div v-if="successVerificationMessage" class="text-success mt-2">
+                {{ successVerificationMessage }}
+              </div>
+            </v-alert>
+          </div>
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
@@ -334,5 +336,11 @@ body {
 
 .v-field__input {
   min-height: 40px !important;
+}
+
+/* Container for email verification to keep it separated */
+.email-verification-container {
+  margin-top: 60px;
+  clear: both;
 }
 </style>
