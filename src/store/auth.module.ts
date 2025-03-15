@@ -74,5 +74,11 @@ export const auth = {
     forgotPasswordSuccess(state) {
       state.status.loggedIn = false
     },
+    // Add this mutation
+    uploadAvatarSuccess(state, avatarUrl) {
+      if (state.user) {
+        state.user.avatar = avatarUrl
+      }
+    },
   },
 }
