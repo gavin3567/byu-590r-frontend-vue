@@ -236,15 +236,18 @@ export default {
               </v-overlay>
             </v-avatar>
 
-            <div>
+            <div class="file-input-container">
               <v-file-input
                 accept="image/*"
                 label="Change avatar"
                 prepend-icon="mdi-camera"
                 @change="onAvatarChange"
                 hide-input
-                class="d-inline-block"
+                class="d-inline-block file-input"
                 :disabled="profileIsUploading"
+                base-color="primary"
+                persistent-hint
+                hint="Select an image file"
               ></v-file-input>
 
               <v-btn
@@ -254,6 +257,7 @@ export default {
                 @click="removeAvatar"
                 :loading="profileIsUploading"
                 :disabled="profileIsUploading"
+                class="ml-2"
               >
                 <v-icon>mdi-delete</v-icon>
               </v-btn>
@@ -308,5 +312,27 @@ body {
 
 .position-relative {
   position: relative;
+}
+
+/* Fixed-size file input */
+.file-input-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 16px;
+}
+
+.file-input {
+  min-width: 200px !important;
+  height: 40px !important;
+}
+
+/* Override Vuetify's dynamic width behavior */
+.v-input--density-default {
+  --v-input-control-height: 40px !important;
+}
+
+.v-field__input {
+  min-height: 40px !important;
 }
 </style>
