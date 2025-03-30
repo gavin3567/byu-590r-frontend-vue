@@ -178,6 +178,8 @@ export default {
       <v-spacer></v-spacer>
       <v-btn to="/" default>Home</v-btn>
       <v-btn to="about">About</v-btn>
+      <v-btn to="pokemon-cards">Pokemon Cards</v-btn>
+      <!-- Add this line -->
       <v-btn
         :prepend-icon="theme === 'light' ? 'mdi-weather-sunny' : 'mdi-weather-night'"
         @click="changeTheme"
