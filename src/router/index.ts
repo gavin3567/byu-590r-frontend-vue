@@ -22,6 +22,12 @@ const router = createRouter({
       name: 'reset-password',
       component: () => import('../views/login/ResetPasswordView.vue'),
     },
+    // Add the new Pokemon Cards route
+    {
+      path: '/pokemon-cards',
+      name: 'pokemon-cards',
+      component: () => import('../views/pokemon-cards/PokemonCardsView.vue'),
+    },
   ],
 })
 
