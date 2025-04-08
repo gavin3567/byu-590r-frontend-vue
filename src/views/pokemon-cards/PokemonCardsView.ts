@@ -23,7 +23,7 @@ export default defineComponent({
 
       // Edit/Create form
       isEditMode: false,
-      valid: false,
+      valid: true, // Changed from false to true as default
       cardImage: null,
       currentImageUrl: '',
 
@@ -47,7 +47,14 @@ export default defineComponent({
       },
 
       // Form validation
-      imageRules: [(v) => !this.isEditMode || !!v || 'Image is required for new cards'],
+      nameRules: [(v) => !!v || 'Card name is required'],
+      pokemonNameRules: [(v) => !!v || 'Pokemon name is required'],
+      energyTypeRules: [(v) => !!v || 'Energy type is required'],
+      inventoryRules: [
+        (v) => !!v || 'Inventory quantity is required',
+        (v) => v >= 1 || 'Quantity must be at least 1',
+      ],
+      imageRules: [(v) => this.isEditMode || !!v || 'Image is required for new cards'],
     }
   },
   computed: {
@@ -103,6 +110,7 @@ export default defineComponent({
       this.isEditMode = false
       this.resetForm()
       this.dialog = true
+      this.valid = true // Ensure valid state is reset
     },
 
     openEditDialog(card) {
@@ -111,6 +119,7 @@ export default defineComponent({
       this.currentImageUrl = card.card_image
       this.cardImage = null
       this.dialog = true
+      this.valid = true // Ensure valid state is reset for edit mode
     },
 
     openDeleteDialog(card) {
@@ -139,6 +148,7 @@ export default defineComponent({
       }
       this.cardImage = null
       this.currentImageUrl = ''
+      this.valid = true // Reset validity
 
       // Reset form validation
       if (this.$refs.form) {
@@ -148,19 +158,36 @@ export default defineComponent({
 
     // CRUD operations
     async saveCard() {
-      if (!this.valid) return
-
       // Create FormData object for file upload
       const formData = new FormData()
+
+      // Add all form fields except card_image
       Object.keys(this.formData).forEach((key) => {
-        if (this.formData[key] !== null && this.formData[key] !== undefined) {
-          formData.append(key, this.formData[key])
+        // Skip the card_image field as we'll handle it separately
+        if (key !== 'card_image' && key !== 'created_at' && key !== 'updated_at') {
+          if (this.formData[key] !== null && this.formData[key] !== undefined) {
+            formData.append(key, this.formData[key])
+          }
         }
       })
 
-      // Add card image if selected
+      // Add card image if selected - make sure it's a valid file object
       if (this.cardImage) {
-        formData.append('card_image', this.cardImage)
+        // Check if it's an array or a single file
+        if (Array.isArray(this.cardImage) && this.cardImage.length > 0) {
+          formData.append('card_image', this.cardImage[0])
+        } else if (this.cardImage instanceof File) {
+          formData.append('card_image', this.cardImage)
+        }
+      } else if (this.isEditMode) {
+        // If in edit mode with no new image, tell the server to keep the existing image
+        formData.append('_keep_existing_image', '1')
+      }
+
+      console.log('Form data being sent:')
+      // Debug log to see what's in the form data
+      for (const pair of formData.entries()) {
+        console.log(pair[0] + ': ' + (pair[1] instanceof File ? 'File: ' + pair[1].name : pair[1]))
       }
 
       try {
@@ -179,7 +206,8 @@ export default defineComponent({
         this.closeDialog()
       } catch (error) {
         console.error('Error saving card:', error)
-        this.$toast?.error(error.message || 'Error saving Pokemon card')
+        const errorMsg = error.response?.data?.message || 'Error saving Pokemon card'
+        this.$toast?.error(errorMsg)
       }
     },
 
@@ -199,12 +227,8 @@ export default defineComponent({
 
     // Checkout/Return operations
     confirmCheckout(card) {
-      if (this.isLowStock(card)) {
-        this.cardToCheckout = card
-        this.checkoutDialog = true
-      } else {
-        this.proceedWithCheckout(card.id)
-      }
+      this.cardToCheckout = card
+      this.checkoutDialog = true
     },
 
     async proceedWithCheckout() {

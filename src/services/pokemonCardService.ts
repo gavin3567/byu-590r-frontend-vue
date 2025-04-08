@@ -1,4 +1,3 @@
-// src/services/pokemonCardService.ts
 import axios from 'axios'
 import API_URL from './env'
 import { authHeader } from './auth-header'
@@ -36,23 +35,45 @@ class PokemonCardService {
 
   // Update a Pokemon card
   updatePokemonCard(id, pokemonCard) {
-    return axios
-      .post(
-        API_URL + `pokemon-cards/${id}`,
-        {
-          ...pokemonCard,
-          _method: 'PUT', // Laravel method spoofing for file uploads
-        },
-        {
+    // For Laravel PUT requests with file uploads, we need to use POST with method spoofing
+    const formData = new FormData()
+
+    // Check if pokemonCard is already a FormData object
+    if (pokemonCard instanceof FormData) {
+      // Add method spoofing for Laravel
+      pokemonCard.append('_method', 'PUT')
+      return axios
+        .post(API_URL + `pokemon-cards/${id}`, pokemonCard, {
           headers: {
             ...authHeader(),
-            'Content-Type': 'multipart/form-data', // Important for file uploads
+            'Content-Type': 'multipart/form-data',
           },
+        })
+        .then((response) => {
+          return response.data
+        })
+    } else {
+      // Handle cases where pokemonCard is a regular object
+      Object.keys(pokemonCard).forEach((key) => {
+        if (pokemonCard[key] !== null && pokemonCard[key] !== undefined) {
+          formData.append(key, pokemonCard[key])
         }
-      )
-      .then((response) => {
-        return response.data
       })
+
+      // Add method spoofing for Laravel
+      formData.append('_method', 'PUT')
+
+      return axios
+        .post(API_URL + `pokemon-cards/${id}`, formData, {
+          headers: {
+            ...authHeader(),
+            'Content-Type': 'multipart/form-data',
+          },
+        })
+        .then((response) => {
+          return response.data
+        })
+    }
   }
 
   // Delete a Pokemon card
