@@ -74,7 +74,12 @@
           </v-btn>
 
           <!-- Return Button -->
-          <v-btn small color="info" :disabled="item.checked_qty <= 0" @click="returnCard(item.id)">
+          <v-btn
+            small
+            color="info"
+            :disabled="item.checked_qty <= 0"
+            @click="handleReturnCard(item.id)"
+          >
             Return
           </v-btn>
         </div>

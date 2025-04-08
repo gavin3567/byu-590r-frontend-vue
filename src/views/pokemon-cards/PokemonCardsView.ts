@@ -23,7 +23,7 @@ export default defineComponent({
 
       // Edit/Create form
       isEditMode: false,
-      valid: true, // Changed from false to true as default
+      valid: true,
       cardImage: null,
       currentImageUrl: '',
 
@@ -74,7 +74,7 @@ export default defineComponent({
       'updatePokemonCard',
       'deletePokemonCard',
       'checkoutCard',
-      'returnCard',
+      'returnCard', // This maps to store action with same name
     ]),
 
     // Energy type and rarity color methods (existing)
@@ -110,7 +110,7 @@ export default defineComponent({
       this.isEditMode = false
       this.resetForm()
       this.dialog = true
-      this.valid = true // Ensure valid state is reset
+      this.valid = true
     },
 
     openEditDialog(card) {
@@ -119,7 +119,7 @@ export default defineComponent({
       this.currentImageUrl = card.card_image
       this.cardImage = null
       this.dialog = true
-      this.valid = true // Ensure valid state is reset for edit mode
+      this.valid = true
     },
 
     openDeleteDialog(card) {
@@ -148,7 +148,7 @@ export default defineComponent({
       }
       this.cardImage = null
       this.currentImageUrl = ''
-      this.valid = true // Reset validity
+      this.valid = true
 
       // Reset form validation
       if (this.$refs.form) {
@@ -245,9 +245,10 @@ export default defineComponent({
       }
     },
 
-    async returnCard(id) {
+    // RENAMED to avoid conflict with Vuex action
+    async handleReturnCard(id) {
       try {
-        await this.returnCard(id)
+        await this.returnCard(id) // This uses the Vuex action
         this.$toast?.success('Pokemon card returned successfully')
       } catch (error) {
         console.error('Error returning card:', error)
