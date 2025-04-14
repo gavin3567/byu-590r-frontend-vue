@@ -16,8 +16,20 @@
       <v-alert type="error">{{ error }}</v-alert>
     </div>
 
-    <!-- Pokemon Cards Table -->
-    <v-data-table v-else :headers="headers" :items="pokemonCards" class="elevation-1">
+    <!-- Pokemon Cards Table - Using full width -->
+    <v-data-table
+      v-else
+      :headers="headers"
+      :items="pokemonCards"
+      class="elevation-1 full-width-table"
+      :items-per-page="10"
+      :disable-sort="false"
+      :disable-pagination="false"
+      :footer-props="{
+        'items-per-page-options': [10, 25, 50, -1],
+        'items-per-page-text': 'Cards per page',
+      }"
+    >
       <!-- Card Image Column -->
       <template v-slot:item.card_image="{ item }">
         <div class="card-image-container" :class="{ 'out-of-stock': isOutOfStock(item) }">
@@ -42,6 +54,23 @@
         </v-chip>
       </template>
 
+      <!-- Categories Column (Many-to-Many) -->
+      <template v-slot:item.categories="{ item }">
+        <div v-if="item.categories && item.categories.length > 0">
+          <v-chip
+            v-for="category in item.categories"
+            :key="category.id"
+            size="small"
+            class="mr-1 mb-1"
+            color="primary"
+            variant="outlined"
+          >
+            {{ category.name }}
+          </v-chip>
+        </div>
+        <div v-else class="text-caption">No categories</div>
+      </template>
+
       <!-- Inventory Column -->
       <template v-slot:item.inventory="{ item }">
         <div>
@@ -51,37 +80,45 @@
 
       <!-- Actions Column -->
       <template v-slot:item.actions="{ item }">
-        <div class="d-flex">
+        <div class="action-buttons-container">
           <!-- Edit Button -->
-          <v-btn icon small class="mr-2" @click="openEditDialog(item)">
+          <v-btn icon small class="action-button" @click="openEditDialog(item)">
             <v-icon>mdi-pencil</v-icon>
           </v-btn>
 
           <!-- Delete Button -->
-          <v-btn icon small color="error" class="mr-2" @click="openDeleteDialog(item)">
+          <v-btn icon small color="error" class="action-button" @click="openDeleteDialog(item)">
             <v-icon>mdi-delete</v-icon>
           </v-btn>
 
-          <!-- Checkout Button -->
-          <v-btn
-            small
-            color="success"
-            class="mr-2"
-            :disabled="isOutOfStock(item)"
-            @click="confirmCheckout(item)"
-          >
-            Checkout
+          <!-- View Details Button -->
+          <v-btn icon small color="primary" class="action-button" @click="openDetailsDialog(item)">
+            <v-icon>mdi-information-outline</v-icon>
           </v-btn>
 
-          <!-- Return Button -->
-          <v-btn
-            small
-            color="info"
-            :disabled="item.checked_qty <= 0"
-            @click="handleReturnCard(item.id)"
-          >
-            Return
-          </v-btn>
+          <div class="checkout-return-container">
+            <!-- Checkout Button -->
+            <v-btn
+              small
+              color="success"
+              class="checkout-button"
+              :disabled="isOutOfStock(item)"
+              @click="confirmCheckout(item)"
+            >
+              Checkout
+            </v-btn>
+
+            <!-- Return Button -->
+            <v-btn
+              small
+              color="info"
+              class="return-button"
+              :disabled="item.checked_qty <= 0"
+              @click="handleReturnCard(item.id)"
+            >
+              Return
+            </v-btn>
+          </div>
         </div>
       </template>
     </v-data-table>
@@ -227,6 +264,71 @@
           <v-spacer></v-spacer>
           <v-btn color="blue darken-1" text @click="checkoutDialog = false">Cancel</v-btn>
           <v-btn color="green darken-1" text @click="proceedWithCheckout">Checkout</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Card Details Dialog -->
+    <v-dialog v-model="detailsDialog" max-width="700px">
+      <v-card v-if="selectedCard">
+        <v-card-title class="headline">
+          {{ selectedCard.name }}
+        </v-card-title>
+
+        <v-card-text>
+          <v-container>
+            <v-row>
+              <!-- Card Image -->
+              <v-col cols="12" sm="4" class="text-center">
+                <v-img
+                  :src="selectedCard.card_image"
+                  max-height="250"
+                  contain
+                  class="mx-auto mb-4"
+                ></v-img>
+              </v-col>
+
+              <!-- Card Basic Info -->
+              <v-col cols="12" sm="8">
+                <v-row>
+                  <v-col cols="6">
+                    <p><strong>Pokemon:</strong> {{ selectedCard.pokemon_name }}</p>
+                    <p>
+                      <strong>Type:</strong>
+                      <v-chip
+                        small
+                        :color="getEnergyTypeColor(selectedCard.energy_type)"
+                        text-color="white"
+                      >
+                        {{ selectedCard.energy_type }}
+                      </v-chip>
+                    </p>
+                    <p><strong>Card Number:</strong> {{ selectedCard.card_number }}</p>
+                  </v-col>
+                  <v-col cols="6">
+                    <p>
+                      <strong>Rarity:</strong>
+                      <v-chip
+                        small
+                        :color="getRarityColor(selectedCard.card_rarity)"
+                        variant="outlined"
+                      >
+                        {{ selectedCard.card_rarity }}
+                      </v-chip>
+                    </p>
+                    <p><strong>Length:</strong> {{ selectedCard.length }}</p>
+                    <p><strong>Weight:</strong> {{ selectedCard.weight }}</p>
+                  </v-col>
+                </v-row>
+                <p class="mt-2"><strong>Description:</strong> {{ selectedCard.description }}</p>
+              </v-col>
+            </v-row>
+          </v-container>
+        </v-card-text>
+
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="primary" text @click="detailsDialog = false">Close</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>

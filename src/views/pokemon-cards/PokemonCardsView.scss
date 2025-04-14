@@ -3,6 +3,62 @@
 
   .v-data-table {
     margin-top: 20px;
+    width: 100%;
+    min-width: 1300px; // Set a minimum width to ensure all content is visible
+  }
+
+  // Full-width table with expanded layout
+  .full-width-table {
+    width: 100%;
+    max-width: 100%;
+    table-layout: fixed; // Use fixed table layout for better column control
+
+    // Create more space for content
+    td,
+    th {
+      padding: 12px 8px;
+    }
+
+    // Make actions column wider to fit all buttons
+    ::v-deep .v-data-table__wrapper {
+      overflow-x: auto; // Add horizontal scroll only when necessary
+
+      table {
+        min-width: 100%;
+
+        th:last-child,
+        td:last-child {
+          min-width: 280px; // Make actions column wider
+          width: 280px;
+        }
+      }
+    }
+  }
+
+  // Action buttons container
+  .action-buttons-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between; // Push checkout/return to the right edge
+    flex-wrap: nowrap;
+    width: 100%;
+
+    .action-button {
+      flex-shrink: 0;
+      margin-right: 4px;
+    }
+
+    // Container for checkout and return buttons
+    .checkout-return-container {
+      display: flex;
+      gap: 8px;
+
+      .checkout-button,
+      .return-button {
+        white-space: nowrap;
+        min-width: 80px; // Ensure consistent button width
+      }
+    }
   }
 
   .error-message {
@@ -28,5 +84,10 @@
       font-weight: bold;
       z-index: 1;
     }
+  }
+
+  .card-detail {
+    background-color: rgba(0, 0, 0, 0.03);
+    border-radius: 8px;
   }
 }

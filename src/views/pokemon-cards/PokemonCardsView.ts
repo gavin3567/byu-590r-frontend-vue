@@ -11,6 +11,7 @@ export default defineComponent({
         { title: 'Pokemon', key: 'pokemon_name' },
         { title: 'Type', key: 'energy_type' },
         { title: 'Rarity', key: 'card_rarity' },
+        { title: 'Categories', key: 'categories', sortable: false },
         { title: 'Inventory (Available/Total)', key: 'inventory', sortable: false },
         { title: 'Actions', key: 'actions', sortable: false },
       ],
@@ -20,6 +21,7 @@ export default defineComponent({
       dialog: false,
       deleteDialog: false,
       checkoutDialog: false,
+      detailsDialog: false,
 
       // Edit/Create form
       isEditMode: false,
@@ -30,6 +32,7 @@ export default defineComponent({
       // Selected card for operations
       cardToDelete: null,
       cardToCheckout: null,
+      selectedCard: null,
 
       // Form data
       formData: {
@@ -122,6 +125,11 @@ export default defineComponent({
       this.valid = true
     },
 
+    openDetailsDialog(card) {
+      this.selectedCard = card
+      this.detailsDialog = true
+    },
+
     openDeleteDialog(card) {
       this.cardToDelete = card
       this.deleteDialog = true
@@ -153,6 +161,17 @@ export default defineComponent({
       // Reset form validation
       if (this.$refs.form) {
         this.$refs.form.resetValidation()
+      }
+    },
+
+    // Format date for display
+    formatDate(dateString) {
+      if (!dateString) return 'Unknown'
+      try {
+        const date = new Date(dateString)
+        return date.toLocaleDateString()
+      } catch (e) {
+        return dateString
       }
     },
 
