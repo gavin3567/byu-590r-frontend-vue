@@ -54,23 +54,6 @@
         </v-chip>
       </template>
 
-      <!-- Categories Column (Many-to-Many) -->
-      <template v-slot:item.categories="{ item }">
-        <div v-if="item.categories && item.categories.length > 0">
-          <v-chip
-            v-for="category in item.categories"
-            :key="category.id"
-            size="small"
-            class="mr-1 mb-1"
-            color="primary"
-            variant="outlined"
-          >
-            {{ category.name }}
-          </v-chip>
-        </div>
-        <div v-else class="text-caption">No categories</div>
-      </template>
-
       <!-- Inventory Column -->
       <template v-slot:item.inventory="{ item }">
         <div>

@@ -11,7 +11,6 @@ export default defineComponent({
         { title: 'Pokemon', key: 'pokemon_name' },
         { title: 'Type', key: 'energy_type' },
         { title: 'Rarity', key: 'card_rarity' },
-        { title: 'Categories', key: 'categories', sortable: false },
         { title: 'Inventory (Available/Total)', key: 'inventory', sortable: false },
         { title: 'Actions', key: 'actions', sortable: false },
       ],
