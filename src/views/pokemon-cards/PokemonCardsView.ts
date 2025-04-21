@@ -206,6 +206,9 @@ export default defineComponent({
       this.resetForm()
       this.dialog = true
       this.valid = true
+
+      // Initialize with empty selection for energy types
+      this.selectedEnergyTypes = []
     },
 
     openEditDialog(card) {
@@ -213,8 +216,10 @@ export default defineComponent({
       this.formData = { ...card }
       this.currentImageUrl = card.card_image
       this.cardImage = null
-      // Parse energy types from string to array for the form
+
+      // Parse energy types from string to array for the dropdown
       this.selectedEnergyTypes = this.getEnergyTypes(card.energy_type)
+
       this.dialog = true
       this.valid = true
     },

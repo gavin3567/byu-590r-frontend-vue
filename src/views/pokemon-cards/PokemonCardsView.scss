@@ -61,10 +61,21 @@
     }
   }
 
+  // Multi-select dropdown for energy types
+  .v-select.v-select--chips .v-chip {
+    margin: 2px;
+  }
+
+  .v-select__selections {
+    display: flex;
+    flex-wrap: wrap;
+  }
+
   .selected-energy-types {
     display: flex;
     flex-wrap: wrap;
     min-height: 32px;
+    margin-top: 8px;
   }
 
   .error-text {
