@@ -85,6 +85,7 @@ export default defineComponent({
       lengthRules: [(v) => !v || /^\d+(\.\d+)?$/.test(v) || 'Length must be a valid number'],
       weightRules: [(v) => !v || /^\d+(\.\d+)?$/.test(v) || 'Weight must be a valid number'],
       cardNumberRules: [
+        (v) => !!v || 'Card number is required',
         (v) =>
           !v ||
           /^[A-Za-z0-9\-\/]+$/.test(v) ||

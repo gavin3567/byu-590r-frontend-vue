@@ -258,6 +258,9 @@
                     label="Card Number"
                     :rules="cardNumberRules"
                     :error-messages="fieldErrors.card_number"
+                    required
+                    hint="Required - Format: 123/456 or SM01"
+                    persistent-hint
                   ></v-text-field>
                 </v-col>
 
