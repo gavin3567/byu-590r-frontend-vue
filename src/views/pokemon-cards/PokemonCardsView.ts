@@ -15,24 +15,35 @@ export default defineComponent({
         { title: 'Actions', key: 'actions', sortable: false },
       ],
       defaultImage: '/images/default-card.png',
-
       // Dialog states
       dialog: false,
       deleteDialog: false,
       checkoutDialog: false,
       detailsDialog: false,
-
       // Edit/Create form
       isEditMode: false,
       valid: true,
       cardImage: null,
       currentImageUrl: '',
-
       // Selected card for operations
       cardToDelete: null,
       cardToCheckout: null,
       selectedCard: null,
-
+      // Energy Types management
+      availableEnergyTypes: [
+        'Fire',
+        'Water',
+        'Grass',
+        'Electric',
+        'Psychic',
+        'Fighting',
+        'Dark',
+        'Metal',
+        'Fairy',
+        'Dragon',
+        'Colorless',
+      ],
+      selectedEnergyTypes: [],
       // Form data
       formData: {
         id: null,
@@ -47,7 +58,6 @@ export default defineComponent({
         inventory_total_qty: 1,
         checked_qty: 0,
       },
-
       // Form validation
       nameRules: [(v) => !!v || 'Card name is required'],
       pokemonNameRules: [(v) => !!v || 'Pokemon name is required'],
@@ -79,7 +89,7 @@ export default defineComponent({
       'returnCard', // This maps to store action with same name
     ]),
 
-    // Energy type and rarity color methods (existing)
+    // Energy type and rarity color methods
     getEnergyTypeColor(type) {
       const colors = {
         Fire: 'red',
@@ -96,6 +106,21 @@ export default defineComponent({
       }
       return colors[type] || 'blue-grey'
     },
+
+    // Get energy types as array from string
+    getEnergyTypes(energyTypeString) {
+      if (!energyTypeString) return []
+      return energyTypeString.split(',').map((type) => type.trim())
+    },
+
+    // Remove energy type from selection
+    removeEnergyType(type) {
+      const index = this.selectedEnergyTypes.indexOf(type)
+      if (index !== -1) {
+        this.selectedEnergyTypes.splice(index, 1)
+      }
+    },
+
     getRarityColor(rarity) {
       const colors = {
         Common: 'grey',
@@ -120,6 +145,8 @@ export default defineComponent({
       this.formData = { ...card }
       this.currentImageUrl = card.card_image
       this.cardImage = null
+      // Parse energy types from string to array for the form
+      this.selectedEnergyTypes = this.getEnergyTypes(card.energy_type)
       this.dialog = true
       this.valid = true
     },
@@ -155,8 +182,8 @@ export default defineComponent({
       }
       this.cardImage = null
       this.currentImageUrl = ''
+      this.selectedEnergyTypes = []
       this.valid = true
-
       // Reset form validation
       if (this.$refs.form) {
         this.$refs.form.resetValidation()
@@ -176,6 +203,9 @@ export default defineComponent({
 
     // CRUD operations
     async saveCard() {
+      // Join selected energy types into a comma-separated string
+      this.formData.energy_type = this.selectedEnergyTypes.join(', ')
+
       // Create FormData object for file upload
       const formData = new FormData()
 
@@ -231,7 +261,6 @@ export default defineComponent({
 
     async deleteCard() {
       if (!this.cardToDelete) return
-
       try {
         await this.deletePokemonCard(this.cardToDelete.id)
         this.$toast?.success('Pokemon card deleted successfully')
@@ -251,7 +280,6 @@ export default defineComponent({
 
     async proceedWithCheckout() {
       if (!this.cardToCheckout) return
-
       try {
         await this.checkoutCard(this.cardToCheckout.id)
         this.$toast?.success('Pokemon card checked out successfully')

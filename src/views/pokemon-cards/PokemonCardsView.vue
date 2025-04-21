@@ -42,9 +42,18 @@
 
       <!-- Energy Type Column -->
       <template v-slot:item.energy_type="{ item }">
-        <v-chip :color="getEnergyTypeColor(item.energy_type)" text-color="white">
-          {{ item.energy_type }}
-        </v-chip>
+        <div class="energy-types-container">
+          <v-chip
+            v-for="type in getEnergyTypes(item.energy_type)"
+            :key="type"
+            :color="getEnergyTypeColor(type)"
+            text-color="white"
+            class="mr-1 mb-1"
+            small
+          >
+            {{ type }}
+          </v-chip>
+        </div>
       </template>
 
       <!-- Card Rarity Column -->
@@ -138,13 +147,38 @@
                   ></v-text-field>
                 </v-col>
 
-                <v-col cols="12" sm="6">
-                  <v-text-field
-                    v-model="formData.energy_type"
-                    label="Energy Type"
-                    :rules="[(v) => !!v || 'Energy type is required']"
-                    required
-                  ></v-text-field>
+                <v-col cols="12">
+                  <label>Energy Type(s)</label>
+                  <div class="energy-type-checkboxes mt-2">
+                    <v-checkbox
+                      v-for="type in availableEnergyTypes"
+                      :key="type"
+                      v-model="selectedEnergyTypes"
+                      :value="type"
+                      :label="type"
+                      :color="getEnergyTypeColor(type)"
+                      hide-details
+                      class="energy-type-checkbox"
+                      dense
+                    ></v-checkbox>
+                  </div>
+                  <div class="selected-energy-types mt-2">
+                    <v-chip
+                      v-for="type in selectedEnergyTypes"
+                      :key="type"
+                      :color="getEnergyTypeColor(type)"
+                      text-color="white"
+                      class="mr-1 mb-1"
+                      small
+                      closable
+                      @click:close="removeEnergyType(type)"
+                    >
+                      {{ type }}
+                    </v-chip>
+                  </div>
+                  <div v-if="selectedEnergyTypes.length === 0" class="error-text mt-1">
+                    Energy type is required
+                  </div>
                 </v-col>
 
                 <v-col cols="12" sm="6">
@@ -215,7 +249,14 @@
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn color="blue darken-1" text @click="closeDialog">Cancel</v-btn>
-          <v-btn color="blue darken-1" text @click="saveCard" :disabled="!valid">Save</v-btn>
+          <v-btn
+            color="blue darken-1"
+            text
+            @click="saveCard"
+            :disabled="!valid || selectedEnergyTypes.length === 0"
+          >
+            Save
+          </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -276,16 +317,19 @@
                 <v-row>
                   <v-col cols="6">
                     <p><strong>Pokemon:</strong> {{ selectedCard.pokemon_name }}</p>
-                    <p>
-                      <strong>Type:</strong>
+                    <p><strong>Type:</strong></p>
+                    <div class="mt-1 mb-2">
                       <v-chip
+                        v-for="type in getEnergyTypes(selectedCard.energy_type)"
+                        :key="type"
                         small
-                        :color="getEnergyTypeColor(selectedCard.energy_type)"
+                        :color="getEnergyTypeColor(type)"
                         text-color="white"
+                        class="mr-1"
                       >
-                        {{ selectedCard.energy_type }}
+                        {{ type }}
                       </v-chip>
-                    </p>
+                    </div>
                     <p><strong>Card Number:</strong> {{ selectedCard.card_number }}</p>
                   </v-col>
                   <v-col cols="6">
