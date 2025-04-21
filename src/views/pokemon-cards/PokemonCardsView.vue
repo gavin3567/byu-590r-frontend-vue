@@ -180,42 +180,22 @@
                 </v-col>
 
                 <v-col cols="12">
-                  <label>Energy Type(s)</label>
-                  <v-select
-                    v-model="selectedEnergyTypes"
-                    :items="availableEnergyTypes"
-                    label="Select Energy Types"
-                    multiple
-                    chips
-                    :error-messages="fieldErrors.energy_type"
-                    persistent-hint
-                    hint="Select one or more energy types"
+                  <label class="text-subtitle-1 font-weight-medium mb-2 d-block"
+                    >Energy Type(s)</label
                   >
-                    <template v-slot:selection="{ item, index }">
-                      <v-chip
-                        v-if="index < 3"
-                        :color="getEnergyTypeColor(item)"
-                        text-color="white"
-                        small
-                      >
-                        {{ item }}
-                      </v-chip>
-                      <span v-if="index === 3" class="grey--text text-caption pl-2">
-                        (+{{ selectedEnergyTypes.length - 3 }} more)
-                      </span>
-                    </template>
-                    <template v-slot:item="{ item }">
-                      <v-chip
-                        :color="getEnergyTypeColor(item)"
-                        text-color="white"
-                        small
-                        class="mr-2"
-                      >
-                        {{ item }}
-                      </v-chip>
-                      <span>{{ item }}</span>
-                    </template>
-                  </v-select>
+                  <div class="energy-type-checkboxes mt-2">
+                    <v-checkbox
+                      v-for="type in availableEnergyTypes"
+                      :key="type"
+                      v-model="selectedEnergyTypes"
+                      :value="type"
+                      :label="type"
+                      :color="getEnergyTypeColor(type)"
+                      hide-details
+                      class="energy-type-checkbox ma-0 pa-0"
+                      dense
+                    ></v-checkbox>
+                  </div>
                   <div class="selected-energy-types mt-2">
                     <v-chip
                       v-for="type in selectedEnergyTypes"
@@ -224,11 +204,17 @@
                       text-color="white"
                       class="mr-1 mb-1"
                       small
-                      closable
+                      close
                       @click:close="removeEnergyType(type)"
                     >
                       {{ type }}
                     </v-chip>
+                  </div>
+                  <div
+                    v-if="selectedEnergyTypes.length === 0 || fieldErrors.energy_type"
+                    class="error-text mt-1"
+                  >
+                    {{ fieldErrors.energy_type || 'Energy type is required' }}
                   </div>
                 </v-col>
 
