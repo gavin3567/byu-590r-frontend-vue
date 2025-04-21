@@ -98,6 +98,7 @@ export default defineComponent({
           'Please enter a valid rarity',
       ],
       descriptionRules: [
+        (v) => !!v || 'Description cannot be empty',
         (v) => (v && v.length <= 500) || 'Description must be less than 500 characters',
       ],
       imageRules: [

@@ -283,6 +283,9 @@
                     :rules="descriptionRules"
                     :error-messages="fieldErrors.description"
                     counter="500"
+                    required
+                    hint="Required - Maximum 500 characters"
+                    persistent-hint
                   ></v-textarea>
                 </v-col>
 
