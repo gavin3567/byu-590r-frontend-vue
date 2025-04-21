@@ -51,6 +51,8 @@
     border: 1px solid #e0e0e0;
     border-radius: 4px;
     padding: 8px;
+    max-height: 200px;
+    overflow-y: auto;
 
     .energy-type-checkbox {
       flex: 0 0 calc(33.333% - 8px);
@@ -68,6 +70,27 @@
   .error-text {
     color: #ff5252;
     font-size: 12px;
+  }
+
+  // Form validation styles
+  .v-text-field.error--text .v-input__slot,
+  .v-select.error--text .v-input__slot,
+  .v-textarea.error--text .v-input__slot {
+    border-color: #ff5252;
+  }
+
+  // Form field with backend validation errors
+  .field-with-error {
+    border: 1px solid #ff5252;
+    border-radius: 4px;
+    padding: 4px;
+    margin-bottom: 8px;
+  }
+
+  // Highlighted validation errors
+  .validation-error {
+    background-color: rgba(255, 82, 82, 0.05);
+    border-left: 3px solid #ff5252;
   }
 
   // Action buttons container

@@ -2,8 +2,13 @@
   <div class="pokemon-cards">
     <h1 class="text-h4 mb-4">Pokemon Card Collection</h1>
 
-    <!-- Add Button -->
-    <v-btn color="primary" class="mb-4" @click="openCreateDialog">
+    <!-- Add Button with Loading State -->
+    <v-btn
+      color="primary"
+      class="mb-4"
+      @click="openCreateDialog"
+      :disabled="loading || isPageActionInProgress"
+    >
       <v-icon left>mdi-plus</v-icon>
       Add New Card
     </v-btn>
@@ -13,7 +18,20 @@
       <v-progress-circular indeterminate color="primary"></v-progress-circular>
     </div>
     <div v-else-if="error" class="error-message">
-      <v-alert type="error">{{ error }}</v-alert>
+      <v-alert type="error">
+        {{ error }}
+        <v-btn
+          text
+          color="white"
+          small
+          @click="retryLoading"
+          class="mt-2"
+          :loading="isRetrying"
+          :disabled="isRetrying"
+        >
+          Retry
+        </v-btn>
+      </v-alert>
     </div>
 
     <!-- Pokemon Cards Table - Using full width -->
@@ -94,7 +112,8 @@
               small
               color="success"
               class="checkout-button"
-              :disabled="isOutOfStock(item)"
+              :disabled="isOutOfStock(item) || isActionInProgress(item.id, 'checkout')"
+              :loading="isActionInProgress(item.id, 'checkout')"
               @click="confirmCheckout(item)"
             >
               Checkout
@@ -105,7 +124,8 @@
               small
               color="info"
               class="return-button"
-              :disabled="item.checked_qty <= 0"
+              :disabled="item.checked_qty <= 0 || isActionInProgress(item.id, 'return')"
+              :loading="isActionInProgress(item.id, 'return')"
               @click="handleReturnCard(item.id)"
             >
               Return
@@ -125,15 +145,25 @@
         </v-card-title>
 
         <v-card-text>
-          <v-form ref="form" v-model="valid" @submit.prevent="saveCard">
+          <v-form ref="form" v-model="valid" @submit.prevent="validateAndSubmit">
             <v-container>
+              <!-- Form validation status -->
+              <v-row v-if="hasFormErrors">
+                <v-col cols="12">
+                  <v-alert dense type="error" class="validation-error mb-4">
+                    Please correct the errors before submitting the form.
+                  </v-alert>
+                </v-col>
+              </v-row>
               <v-row>
                 <!-- Form Fields -->
                 <v-col cols="12" sm="6">
                   <v-text-field
                     v-model="formData.name"
                     label="Card Name"
-                    :rules="[(v) => !!v || 'Card name is required']"
+                    :rules="nameRules"
+                    :error-messages="fieldErrors.name"
+                    counter="100"
                     required
                   ></v-text-field>
                 </v-col>
@@ -142,7 +172,9 @@
                   <v-text-field
                     v-model="formData.pokemon_name"
                     label="Pokemon Name"
-                    :rules="[(v) => !!v || 'Pokemon name is required']"
+                    :rules="pokemonNameRules"
+                    :error-messages="fieldErrors.pokemon_name"
+                    counter="50"
                     required
                   ></v-text-field>
                 </v-col>
@@ -176,8 +208,11 @@
                       {{ type }}
                     </v-chip>
                   </div>
-                  <div v-if="selectedEnergyTypes.length === 0" class="error-text mt-1">
-                    Energy type is required
+                  <div
+                    v-if="selectedEnergyTypes.length === 0 || fieldErrors.energy_type"
+                    class="error-text mt-1"
+                  >
+                    {{ fieldErrors.energy_type || 'Energy type is required' }}
                   </div>
                 </v-col>
 
@@ -187,28 +222,52 @@
                     label="Inventory Quantity"
                     type="number"
                     min="1"
-                    :rules="[
-                      (v) => !!v || 'Inventory quantity is required',
-                      (v) => v >= 1 || 'Quantity must be at least 1',
-                    ]"
+                    :rules="inventoryRules"
+                    :error-messages="fieldErrors.inventory_total_qty"
                     required
                   ></v-text-field>
                 </v-col>
 
                 <v-col cols="12" sm="6">
-                  <v-text-field v-model="formData.length" label="Length"></v-text-field>
+                  <v-text-field
+                    v-model="formData.length"
+                    label="Length"
+                    :rules="lengthRules"
+                    :error-messages="fieldErrors.length"
+                    hint="Enter length in cm"
+                    persistent-hint
+                  ></v-text-field>
                 </v-col>
 
                 <v-col cols="12" sm="6">
-                  <v-text-field v-model="formData.weight" label="Weight"></v-text-field>
+                  <v-text-field
+                    v-model="formData.weight"
+                    label="Weight"
+                    :rules="weightRules"
+                    :error-messages="fieldErrors.weight"
+                    hint="Enter weight in grams"
+                    persistent-hint
+                  ></v-text-field>
                 </v-col>
 
                 <v-col cols="12" sm="6">
-                  <v-text-field v-model="formData.card_number" label="Card Number"></v-text-field>
+                  <v-text-field
+                    v-model="formData.card_number"
+                    label="Card Number"
+                    :rules="cardNumberRules"
+                    :error-messages="fieldErrors.card_number"
+                  ></v-text-field>
                 </v-col>
 
                 <v-col cols="12" sm="6">
-                  <v-text-field v-model="formData.card_rarity" label="Card Rarity"></v-text-field>
+                  <v-select
+                    v-model="formData.card_rarity"
+                    :items="['Common', 'Uncommon', 'Rare', 'Ultra Rare', 'Secret Rare']"
+                    label="Card Rarity"
+                    :rules="rarityRules"
+                    :error-messages="fieldErrors.card_rarity"
+                    required
+                  ></v-select>
                 </v-col>
 
                 <v-col cols="12">
@@ -216,6 +275,9 @@
                     v-model="formData.description"
                     label="Description"
                     rows="3"
+                    :rules="descriptionRules"
+                    :error-messages="fieldErrors.description"
+                    counter="500"
                   ></v-textarea>
                 </v-col>
 
@@ -227,6 +289,9 @@
                     label="Card Image"
                     prepend-icon="mdi-camera"
                     :required="!isEditMode"
+                    :error-messages="fieldErrors.card_image"
+                    hint="Max file size: 5MB"
+                    persistent-hint
                     show-size
                   ></v-file-input>
                 </v-col>
@@ -248,12 +313,15 @@
 
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn color="blue darken-1" text @click="closeDialog">Cancel</v-btn>
+          <v-btn color="blue darken-1" text @click="closeDialog" :disabled="isSubmitting"
+            >Cancel</v-btn
+          >
           <v-btn
             color="blue darken-1"
             text
-            @click="saveCard"
-            :disabled="!valid || selectedEnergyTypes.length === 0"
+            @click="validateAndSubmit"
+            :disabled="!valid || selectedEnergyTypes.length === 0 || isSubmitting"
+            :loading="isSubmitting"
           >
             Save
           </v-btn>
@@ -270,8 +338,18 @@
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn color="blue darken-1" text @click="deleteDialog = false">Cancel</v-btn>
-          <v-btn color="red darken-1" text @click="deleteCard">Delete</v-btn>
+          <v-btn color="blue darken-1" text @click="deleteDialog = false" :disabled="isDeleting"
+            >Cancel</v-btn
+          >
+          <v-btn
+            color="red darken-1"
+            text
+            @click="deleteCard"
+            :disabled="isDeleting"
+            :loading="isDeleting"
+          >
+            Delete
+          </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -286,8 +364,23 @@
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn color="blue darken-1" text @click="checkoutDialog = false">Cancel</v-btn>
-          <v-btn color="green darken-1" text @click="proceedWithCheckout">Checkout</v-btn>
+          <v-btn
+            color="blue darken-1"
+            text
+            @click="checkoutDialog = false"
+            :disabled="isCheckingOut"
+          >
+            Cancel
+          </v-btn>
+          <v-btn
+            color="green darken-1"
+            text
+            @click="proceedWithCheckout"
+            :disabled="isCheckingOut"
+            :loading="isCheckingOut"
+          >
+            Checkout
+          </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>

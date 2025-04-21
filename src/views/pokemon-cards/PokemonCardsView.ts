@@ -25,6 +25,15 @@ export default defineComponent({
       valid: true,
       cardImage: null,
       currentImageUrl: '',
+      // Operation states
+      isSubmitting: false,
+      isDeleting: false,
+      isCheckingOut: false,
+      isReturning: false,
+      isRetrying: false,
+      activeOperations: {}, // Tracks operations in progress by card ID
+      // Field validation errors
+      fieldErrors: {},
       // Selected card for operations
       cardToDelete: null,
       cardToCheckout: null,
@@ -59,14 +68,41 @@ export default defineComponent({
         checked_qty: 0,
       },
       // Form validation
-      nameRules: [(v) => !!v || 'Card name is required'],
-      pokemonNameRules: [(v) => !!v || 'Pokemon name is required'],
+      nameRules: [
+        (v) => !!v || 'Card name is required',
+        (v) => (v && v.length <= 100) || 'Card name must be less than 100 characters',
+      ],
+      pokemonNameRules: [
+        (v) => !!v || 'Pokemon name is required',
+        (v) => (v && v.length <= 50) || 'Pokemon name must be less than 50 characters',
+      ],
       energyTypeRules: [(v) => !!v || 'Energy type is required'],
       inventoryRules: [
         (v) => !!v || 'Inventory quantity is required',
         (v) => v >= 1 || 'Quantity must be at least 1',
+        (v) => Number.isInteger(Number(v)) || 'Quantity must be a whole number',
       ],
-      imageRules: [(v) => this.isEditMode || !!v || 'Image is required for new cards'],
+      lengthRules: [(v) => !v || /^\d+(\.\d+)?$/.test(v) || 'Length must be a valid number'],
+      weightRules: [(v) => !v || /^\d+(\.\d+)?$/.test(v) || 'Weight must be a valid number'],
+      cardNumberRules: [
+        (v) =>
+          !v ||
+          /^[A-Za-z0-9\-\/]+$/.test(v) ||
+          'Card number must contain only alphanumeric characters, hyphens, and slashes',
+      ],
+      rarityRules: [
+        (v) => !!v || 'Card rarity is required',
+        (v) =>
+          (v && ['Common', 'Uncommon', 'Rare', 'Ultra Rare', 'Secret Rare'].includes(v)) ||
+          'Please enter a valid rarity',
+      ],
+      descriptionRules: [
+        (v) => (v && v.length <= 500) || 'Description must be less than 500 characters',
+      ],
+      imageRules: [
+        (v) => this.isEditMode || !!v || 'Image is required for new cards',
+        (v) => !v || (v && v.size < 5000000) || 'Image size should be less than 5MB',
+      ],
     }
   },
   computed: {
@@ -75,6 +111,24 @@ export default defineComponent({
       loading: (state) => state.pokemonCards.loading,
       error: (state) => state.pokemonCards.error,
     }),
+
+    hasFormErrors() {
+      return (
+        Object.keys(this.fieldErrors).length > 0 ||
+        (this.selectedEnergyTypes.length === 0 && this.dialog)
+      )
+    },
+
+    // Check if any page-level operations are in progress
+    isPageActionInProgress() {
+      return (
+        this.isSubmitting ||
+        this.isDeleting ||
+        this.isCheckingOut ||
+        this.isReturning ||
+        this.loading
+      )
+    },
   },
   created() {
     this.getPokemonCards()
@@ -88,6 +142,20 @@ export default defineComponent({
       'checkoutCard',
       'returnCard', // This maps to store action with same name
     ]),
+
+    // Retry loading cards after an error
+    async retryLoading() {
+      if (this.isRetrying) return
+
+      this.isRetrying = true
+      try {
+        await this.getPokemonCards()
+      } catch (error) {
+        console.error('Error retrying load:', error)
+      } finally {
+        this.isRetrying = false
+      }
+    },
 
     // Energy type and rarity color methods
     getEnergyTypeColor(type) {
@@ -184,6 +252,8 @@ export default defineComponent({
       this.currentImageUrl = ''
       this.selectedEnergyTypes = []
       this.valid = true
+      this.fieldErrors = {} // Reset field-specific errors
+
       // Reset form validation
       if (this.$refs.form) {
         this.$refs.form.resetValidation()
@@ -201,8 +271,85 @@ export default defineComponent({
       }
     },
 
+    // Validate and submit form
+    validateAndSubmit() {
+      // Clear previous errors
+      this.fieldErrors = {}
+
+      // Validate the form using Vuetify's validation
+      if (!this.$refs.form.validate()) {
+        this.$toast?.error('Please correct the form errors before submitting')
+        return
+      }
+
+      // Validate energy types
+      if (this.selectedEnergyTypes.length === 0) {
+        this.fieldErrors.energy_type = 'At least one energy type is required'
+        this.$toast?.error('Please select at least one energy type')
+        return
+      }
+
+      // All validation passed, save the card
+      this.saveCard()
+    },
+
+    // Validate all fields before submission
+    validateForm() {
+      // Reset field errors
+      this.fieldErrors = {}
+
+      // Check if energy types are selected
+      if (this.selectedEnergyTypes.length === 0) {
+        this.fieldErrors.energy_type = 'At least one energy type is required'
+        return false
+      }
+
+      // Check if the form is valid according to Vuetify
+      if (!this.$refs.form.validate()) {
+        return false
+      }
+
+      return true
+    },
+
+    // Handle backend validation errors
+    handleBackendValidationErrors(error) {
+      // Reset field errors
+      this.fieldErrors = {}
+
+      if (error.response && error.response.status === 422) {
+        // Process validation errors from backend
+        const validationErrors = error.response.data.errors || {}
+
+        // Map backend errors to fields
+        Object.keys(validationErrors).forEach((field) => {
+          this.fieldErrors[field] = validationErrors[field][0]
+        })
+
+        // Scroll to the first error
+        this.$nextTick(() => {
+          const firstErrorElement = document.querySelector('.error--text')
+          if (firstErrorElement) {
+            firstErrorElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
+          }
+        })
+
+        return true // Validation errors handled
+      }
+
+      return false // Not a validation error
+    },
+
     // CRUD operations
     async saveCard() {
+      // Don't submit if already submitting (prevent duplicate submissions)
+      if (this.isSubmitting) return
+
+      // Validate form
+      if (!this.validateForm()) return
+
+      this.isSubmitting = true
+
       // Join selected energy types into a comma-separated string
       this.formData.energy_type = this.selectedEnergyTypes.join(', ')
 
@@ -232,12 +379,6 @@ export default defineComponent({
         formData.append('_keep_existing_image', '1')
       }
 
-      console.log('Form data being sent:')
-      // Debug log to see what's in the form data
-      for (const pair of formData.entries()) {
-        console.log(pair[0] + ': ' + (pair[1] instanceof File ? 'File: ' + pair[1].name : pair[1]))
-      }
-
       try {
         if (this.isEditMode && this.formData.id) {
           // Update existing card
@@ -246,21 +387,32 @@ export default defineComponent({
             pokemonCard: formData,
           })
           this.$toast?.success('Pokemon card updated successfully')
+          this.closeDialog()
         } else {
           // Create new card
           await this.createPokemonCard(formData)
           this.$toast?.success('Pokemon card created successfully')
+          this.closeDialog()
         }
-        this.closeDialog()
       } catch (error) {
         console.error('Error saving card:', error)
-        const errorMsg = error.response?.data?.message || 'Error saving Pokemon card'
-        this.$toast?.error(errorMsg)
+
+        // Check if these are validation errors
+        if (!this.handleBackendValidationErrors(error)) {
+          // If not validation errors, show generic error
+          const errorMsg = error.response?.data?.message || 'Error saving Pokemon card'
+          this.$toast?.error(errorMsg)
+        }
+      } finally {
+        this.isSubmitting = false
       }
     },
 
     async deleteCard() {
-      if (!this.cardToDelete) return
+      if (!this.cardToDelete || this.isDeleting) return
+
+      this.isDeleting = true
+
       try {
         await this.deletePokemonCard(this.cardToDelete.id)
         this.$toast?.success('Pokemon card deleted successfully')
@@ -268,7 +420,9 @@ export default defineComponent({
         this.cardToDelete = null
       } catch (error) {
         console.error('Error deleting card:', error)
-        this.$toast?.error(error.message || 'Error deleting Pokemon card')
+        this.$toast?.error(error.response?.data?.message || 'Error deleting Pokemon card')
+      } finally {
+        this.isDeleting = false
       }
     },
 
@@ -279,26 +433,49 @@ export default defineComponent({
     },
 
     async proceedWithCheckout() {
-      if (!this.cardToCheckout) return
+      if (!this.cardToCheckout || this.isCheckingOut) return
+
+      this.isCheckingOut = true
+      const cardId = this.cardToCheckout.id
+      this.setActionInProgress(cardId, 'checkout', true)
+
       try {
-        await this.checkoutCard(this.cardToCheckout.id)
+        await this.checkoutCard(cardId)
         this.$toast?.success('Pokemon card checked out successfully')
         this.checkoutDialog = false
         this.cardToCheckout = null
       } catch (error) {
         console.error('Error checking out card:', error)
-        this.$toast?.error(error.message || 'Error checking out Pokemon card')
+
+        // Handle specific validation errors
+        if (error.response?.status === 422) {
+          const errorMessage = error.response.data.message || 'Error checking out Pokemon card'
+          this.$toast?.error(errorMessage)
+        } else if (error.response?.status === 409) {
+          // Conflict - card might already be out of stock
+          this.$toast?.error('This card is no longer available for checkout')
+        } else {
+          this.$toast?.error('Error checking out Pokemon card')
+        }
+      } finally {
+        this.isCheckingOut = false
+        this.setActionInProgress(cardId, 'checkout', false)
       }
     },
 
-    // RENAMED to avoid conflict with Vuex action
     async handleReturnCard(id) {
+      if (this.isActionInProgress(id, 'return')) return
+
+      this.setActionInProgress(id, 'return', true)
+
       try {
         await this.returnCard(id) // This uses the Vuex action
         this.$toast?.success('Pokemon card returned successfully')
       } catch (error) {
         console.error('Error returning card:', error)
-        this.$toast?.error(error.message || 'Error returning Pokemon card')
+        this.$toast?.error(error.response?.data?.message || 'Error returning Pokemon card')
+      } finally {
+        this.setActionInProgress(id, 'return', false)
       }
     },
 
@@ -311,6 +488,21 @@ export default defineComponent({
       if (!card) return false
       // Consider low stock if only one copy left
       return card.inventory_total_qty - card.checked_qty === 1
+    },
+
+    // Track operations in progress by card ID and operation type
+    setActionInProgress(cardId, action, status) {
+      if (!this.activeOperations[cardId]) {
+        this.activeOperations[cardId] = {}
+      }
+      this.activeOperations[cardId][action] = status
+
+      // Use Vue.set for reactivity
+      this.$set(this.activeOperations, cardId, { ...this.activeOperations[cardId] })
+    },
+
+    isActionInProgress(cardId, action) {
+      return this.activeOperations[cardId]?.[action] === true
     },
   },
 })
