@@ -50,9 +50,9 @@ export default {
       menuItems: [
         { title: 'Home', icon: 'mdi-home', to: '/' },
         { title: 'About', icon: 'mdi-information', to: '/about' },
-        { title: 'Pokemon Cards', icon: 'mdi-cards', to: '/pokemon-cards' },
+        { title: 'Pokemon', icon: 'mdi-cards', to: '/pokemon-cards' },
       ],
-      appTitle: 'Pokemon Cards', // Default app title for mobile
+      appTitle: 'Pokemon', // Default app title for mobile
     }
   },
   computed: {
