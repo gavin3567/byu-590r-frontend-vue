@@ -194,7 +194,7 @@ export default {
     updateAppTitle() {
       const route = this.$route.path
       if (route === '/pokemon-cards') {
-        this.appTitle = 'Pokemon Cards'
+        this.appTitle = 'Pokemon'
       } else if (route === '/about') {
         this.appTitle = 'About'
       } else {
@@ -231,11 +231,26 @@ export default {
 
       <v-spacer></v-spacer>
 
-      <!-- Theme toggle button - always visible -->
+      <!-- Desktop navigation buttons -->
+      <div class="d-none d-md-flex">
+        <v-btn to="/" default>Home</v-btn>
+        <v-btn to="about">About</v-btn>
+        <v-btn to="pokemon-cards">Pokemon Cards</v-btn>
+        <v-btn
+          :prepend-icon="theme === 'light' ? 'mdi-weather-sunny' : 'mdi-weather-night'"
+          @click="changeTheme"
+        >
+          Toggle Theme
+        </v-btn>
+        <v-btn @click="logout()">Logout</v-btn>
+      </div>
+
+      <!-- Theme toggle for mobile - always visible -->
       <v-btn
+        v-if="$vuetify.display.mdAndDown"
         :icon="theme === 'light' ? 'mdi-weather-sunny' : 'mdi-weather-night'"
         @click="changeTheme"
-        class="mr-4"
+        class="mr-2"
       ></v-btn>
 
       <!-- User avatar with dropdown menu -->
@@ -255,11 +270,7 @@ export default {
             <p class="mb-2">{{ authUser.name }}</p>
             <p class="text-caption mb-4">{{ authUser.email }}</p>
 
-            <v-btn color="primary" block @click="openProfileDialog" class="mb-2">
-              Edit Profile
-            </v-btn>
-
-            <v-btn color="error" block @click="logout()"> Logout </v-btn>
+            <v-btn color="primary" block @click="openProfileDialog"> Edit Profile </v-btn>
           </v-card-text>
         </v-card>
       </v-menu>
