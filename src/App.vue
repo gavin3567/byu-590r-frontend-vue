@@ -52,6 +52,7 @@ export default {
         { title: 'About', icon: 'mdi-information', to: '/about' },
         { title: 'Pokemon Cards', icon: 'mdi-cards', to: '/pokemon-cards' },
       ],
+      appTitle: 'Pokemon Cards', // Default app title for mobile
     }
   },
   computed: {
@@ -108,6 +109,9 @@ export default {
     if (this.isAuthenticated === true && !this.isResetPasswordRoute) {
       this.$router.push('/')
     }
+
+    // Update app title based on current route
+    this.updateAppTitle()
   },
   methods: {
     logout() {
@@ -186,6 +190,23 @@ export default {
     closeDrawer() {
       this.drawer = false
     },
+    // Update app title based on current route
+    updateAppTitle() {
+      const route = this.$route.path
+      if (route === '/pokemon-cards') {
+        this.appTitle = 'Pokemon Cards'
+      } else if (route === '/about') {
+        this.appTitle = 'About'
+      } else {
+        this.appTitle = 'Home'
+      }
+    },
+  },
+  watch: {
+    // Watch for route changes to update mobile title
+    $route() {
+      this.updateAppTitle()
+    },
   },
 }
 </script>
@@ -193,7 +214,7 @@ export default {
 <template>
   <v-app :theme="theme">
     <!-- App Bar when authenticated -->
-    <v-app-bar :title="title" v-if="isAuthenticated" color="#121212">
+    <v-app-bar v-if="isAuthenticated" color="#121212">
       <!-- Mobile menu button -->
       <template v-slot:prepend>
         <v-app-bar-nav-icon
@@ -202,10 +223,10 @@ export default {
         ></v-app-bar-nav-icon>
       </template>
 
-      <!-- Title with responsive truncation -->
+      <!-- Title with responsive design - only show on appropriate screen sizes -->
       <v-app-bar-title class="text-truncate">
-        <span class="d-none d-sm-block">{{ title }}</span>
-        <span class="d-sm-none">Welcome!</span>
+        <span class="d-none d-md-block">{{ title }}</span>
+        <span class="d-md-none">{{ appTitle }}</span>
       </v-app-bar-title>
 
       <v-spacer></v-spacer>
@@ -265,31 +286,27 @@ export default {
       </v-menu>
     </v-app-bar>
 
-    <!-- Navigation drawer for mobile -->
+    <!-- Navigation drawer for mobile - Without profile info -->
     <v-navigation-drawer
       v-model="drawer"
       temporary
       v-if="isAuthenticated && $vuetify.display.mdAndDown"
     >
       <v-list>
-        <v-list-item>
-          <template v-slot:prepend>
-            <v-avatar size="40" color="primary">
-              <v-img v-if="avatarURL" :src="avatarURL" alt="User Avatar"></v-img>
-              <span v-else>{{ userInitials }}</span>
-            </v-avatar>
-          </template>
-          <v-list-item-title>{{ authUser.name }}</v-list-item-title>
-          <v-list-item-subtitle>{{ authUser.email }}</v-list-item-subtitle>
-        </v-list-item>
-
-        <v-divider class="my-2"></v-divider>
-
+        <!-- Just show the navigation items directly -->
         <v-list-item v-for="item in menuItems" :key="item.title" :to="item.to" @click="closeDrawer">
           <template v-slot:prepend>
             <v-icon>{{ item.icon }}</v-icon>
           </template>
           <v-list-item-title>{{ item.title }}</v-list-item-title>
+        </v-list-item>
+
+        <!-- Add theme toggle in drawer -->
+        <v-list-item @click="changeTheme">
+          <template v-slot:prepend>
+            <v-icon>{{ theme === 'light' ? 'mdi-weather-sunny' : 'mdi-weather-night' }}</v-icon>
+          </template>
+          <v-list-item-title>Toggle Theme</v-list-item-title>
         </v-list-item>
       </v-list>
     </v-navigation-drawer>
