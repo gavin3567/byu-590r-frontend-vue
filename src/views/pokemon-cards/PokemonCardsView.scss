@@ -1,10 +1,24 @@
 .pokemon-cards {
   padding: 20px;
 
+  // Responsive container
+  @media (max-width: 960px) {
+    padding: 10px;
+  }
+
   .v-data-table {
     margin-top: 20px;
     width: 100%;
-    min-width: 1300px; // Set a minimum width to ensure all content is visible
+
+    // On desktop, set minimum width
+    @media (min-width: 961px) {
+      min-width: 960px;
+    }
+
+    // On mobile, allow table to scroll horizontally
+    @media (max-width: 960px) {
+      overflow-x: auto;
+    }
   }
 
   // Full-width table with expanded layout
@@ -17,6 +31,11 @@
     td,
     th {
       padding: 12px 8px;
+
+      // On mobile, use less padding
+      @media (max-width: 600px) {
+        padding: 8px 4px;
+      }
     }
 
     // Make actions column wider to fit all buttons
@@ -30,6 +49,19 @@
         td:last-child {
           min-width: 280px; // Make actions column wider
           width: 280px;
+        }
+
+        // On mobile, adjust column widths
+        @media (max-width: 600px) {
+          th:first-child,
+          td:first-child {
+            min-width: 120px; // Card image
+          }
+
+          th:last-child,
+          td:last-child {
+            min-width: 220px; // Actions column
+          }
         }
       }
     }
@@ -61,21 +93,29 @@
     }
   }
 
-  // Multi-select dropdown for energy types
-  .v-select.v-select--chips .v-chip {
-    margin: 2px;
-  }
-
-  .v-select__selections {
+  // Energy Type Selection in Form
+  .energy-type-checkboxes {
     display: flex;
     flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 10px;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    padding: 8px;
+    max-height: 200px;
+    overflow-y: auto;
+
+    .energy-type-checkbox {
+      flex: 0 0 calc(33.333% - 8px);
+      margin-top: 0 !important;
+      margin-bottom: 4px !important;
+    }
   }
 
   .selected-energy-types {
     display: flex;
     flex-wrap: wrap;
     min-height: 32px;
-    margin-top: 8px;
   }
 
   .error-text {
@@ -158,5 +198,71 @@
   .card-detail {
     background-color: rgba(0, 0, 0, 0.03);
     border-radius: 8px;
+  }
+
+  // Card details modal for mobile
+  .card-detail-modal-mobile {
+    @media (max-width: 600px) {
+      .v-card {
+        border-radius: 0;
+      }
+
+      .v-card__title {
+        font-size: 1.25rem;
+      }
+
+      .v-card__text {
+        padding: 12px;
+      }
+    }
+  }
+
+  // Mobile view optimizations
+  @media (max-width: 600px) {
+    .v-data-table .v-data-table__wrapper > table {
+      // Optimize table for mobile view
+      td {
+        height: auto;
+        min-height: 48px;
+      }
+
+      .energy-types-container {
+        flex-wrap: wrap;
+        max-width: 150px;
+      }
+    }
+
+    // Modal adjustments for mobile
+    .v-dialog {
+      margin: 0;
+    }
+
+    .v-card__title {
+      padding: 12px 16px;
+    }
+
+    .v-card__text {
+      padding: 16px;
+    }
+  }
+
+  // Inventory display
+  .inventory-display {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    .available {
+      font-weight: bold;
+    }
+
+    .total-separator {
+      margin: 0 4px;
+      opacity: 0.7;
+    }
+
+    .total {
+      opacity: 0.8;
+    }
   }
 }

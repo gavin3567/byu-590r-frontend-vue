@@ -47,6 +47,7 @@
         'items-per-page-options': [10, 25, 50, -1],
         'items-per-page-text': 'Cards per page',
       }"
+      :mobile-breakpoint="600"
     >
       <!-- Card Image Column -->
       <template v-slot:item.card_image="{ item }">
@@ -83,8 +84,10 @@
 
       <!-- Inventory Column -->
       <template v-slot:item.inventory="{ item }">
-        <div>
-          {{ item.inventory_total_qty - item.checked_qty }} / {{ item.inventory_total_qty }}
+        <div class="inventory-display">
+          <span class="available">{{ item.inventory_total_qty - item.checked_qty }}</span>
+          <span class="total-separator">/</span>
+          <span class="total">{{ item.inventory_total_qty }}</span>
         </div>
       </template>
 
@@ -136,12 +139,14 @@
     </v-data-table>
 
     <!-- Create/Edit Dialog -->
-    <v-dialog v-model="dialog" max-width="800px">
+    <v-dialog v-model="dialog" max-width="800px" fullscreen-breakpoint="600">
       <v-card>
-        <v-card-title>
-          <span class="text-h5">{{
-            isEditMode ? 'Edit Pokemon Card' : 'Add New Pokemon Card'
-          }}</span>
+        <v-card-title class="headline primary white--text">
+          <span>{{ isEditMode ? 'Edit Pokemon Card' : 'Add New Pokemon Card' }}</span>
+          <v-spacer></v-spacer>
+          <v-btn icon dark @click="closeDialog" :disabled="isSubmitting">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
         </v-card-title>
 
         <v-card-text>
@@ -338,10 +343,10 @@
     </v-dialog>
 
     <!-- Delete Confirmation Dialog -->
-    <v-dialog v-model="deleteDialog" max-width="400px">
+    <v-dialog v-model="deleteDialog" max-width="400px" fullscreen-breakpoint="600">
       <v-card>
-        <v-card-title class="text-h5">Delete Pokemon Card</v-card-title>
-        <v-card-text>
+        <v-card-title class="text-h5 error white--text">Delete Pokemon Card</v-card-title>
+        <v-card-text class="pt-4">
           Are you sure you want to delete "{{ cardToDelete?.name }}"? This action cannot be undone.
         </v-card-text>
         <v-card-actions>
@@ -363,10 +368,10 @@
     </v-dialog>
 
     <!-- Checkout Confirmation Dialog -->
-    <v-dialog v-model="checkoutDialog" max-width="400px">
+    <v-dialog v-model="checkoutDialog" max-width="400px" fullscreen-breakpoint="600">
       <v-card>
-        <v-card-title class="text-h5">Checkout Confirmation</v-card-title>
-        <v-card-text>
+        <v-card-title class="text-h5 success white--text">Checkout Confirmation</v-card-title>
+        <v-card-text class="pt-4">
           Are you sure you want to checkout "{{ cardToCheckout?.name }}"?
           {{ isLowStock(cardToCheckout) ? 'This will check out the last available copy.' : '' }}
         </v-card-text>
@@ -394,10 +399,14 @@
     </v-dialog>
 
     <!-- Card Details Dialog -->
-    <v-dialog v-model="detailsDialog" max-width="700px">
+    <v-dialog v-model="detailsDialog" max-width="700px" fullscreen-breakpoint="600">
       <v-card v-if="selectedCard">
-        <v-card-title class="headline">
+        <v-card-title class="headline primary white--text">
           {{ selectedCard.name }}
+          <v-spacer></v-spacer>
+          <v-btn icon dark @click="detailsDialog = false">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
         </v-card-title>
 
         <v-card-text>

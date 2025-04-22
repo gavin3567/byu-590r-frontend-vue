@@ -6,13 +6,19 @@ export default defineComponent({
   data() {
     return {
       headers: [
-        { title: 'Card Image', key: 'card_image', sortable: false, align: 'center' },
+        {
+          title: 'Card Image',
+          key: 'card_image',
+          sortable: false,
+          align: 'center',
+          width: '120px',
+        },
         { title: 'Card Name', key: 'name' },
-        { title: 'Pokemon', key: 'pokemon_name' },
+        { title: 'Pokemon', key: 'pokemon_name', hide: 'sm' }, // Hide on small screens
         { title: 'Type', key: 'energy_type' },
-        { title: 'Rarity', key: 'card_rarity' },
-        { title: 'Inventory (Available/Total)', key: 'inventory', sortable: false },
-        { title: 'Actions', key: 'actions', sortable: false },
+        { title: 'Rarity', key: 'card_rarity', hide: 'xs' }, // Hide on extra small screens
+        { title: 'Inventory', key: 'inventory', sortable: false, hide: 'sm' }, // Hide on small screens
+        { title: 'Actions', key: 'actions', sortable: false, width: '180px' },
       ],
       defaultImage: '/images/default-card.png',
       // Dialog states
