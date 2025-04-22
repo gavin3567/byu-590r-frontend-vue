@@ -50,9 +50,9 @@ export default {
       menuItems: [
         { title: 'Home', icon: 'mdi-home', to: '/' },
         { title: 'About', icon: 'mdi-information', to: '/about' },
-        { title: 'Pokemon', icon: 'mdi-cards', to: '/pokemon-cards' },
+        { title: 'Pokemon Cards', icon: 'mdi-cards', to: '/pokemon-cards' },
       ],
-      appTitle: 'Pokemon', // Default app title for mobile
+      appTitle: 'Pokemon Cards', // Default app title for mobile
     }
   },
   computed: {
@@ -231,31 +231,17 @@ export default {
 
       <v-spacer></v-spacer>
 
-      <!-- Desktop navigation buttons -->
-      <div class="d-none d-md-flex">
-        <v-btn to="/" default>Home</v-btn>
-        <v-btn to="about">About</v-btn>
-        <v-btn to="pokemon-cards">Pokemon Cards</v-btn>
-        <v-btn
-          :prepend-icon="theme === 'light' ? 'mdi-weather-sunny' : 'mdi-weather-night'"
-          @click="changeTheme"
-        >
-          Toggle Theme
-        </v-btn>
-        <v-btn @click="logout()">Logout</v-btn>
-      </div>
-
-      <!-- Theme toggle for mobile - always visible -->
+      <!-- Theme toggle button - always visible -->
       <v-btn
-        v-if="$vuetify.display.mdAndDown"
         :icon="theme === 'light' ? 'mdi-weather-sunny' : 'mdi-weather-night'"
         @click="changeTheme"
+        class="mr-4"
       ></v-btn>
 
       <!-- User avatar with dropdown menu -->
       <v-menu>
         <template v-slot:activator="{ props }">
-          <v-avatar v-bind="props" color="primary" size="36" class="ml-4" style="cursor: pointer">
+          <v-avatar v-bind="props" color="primary" size="36" class="mr-6" style="cursor: pointer">
             <!-- Show avatar if exists -->
             <v-img v-if="avatarURL" :src="avatarURL" alt="User Avatar"></v-img>
             <!-- Show user initials if no avatar -->
@@ -269,24 +255,17 @@ export default {
             <p class="mb-2">{{ authUser.name }}</p>
             <p class="text-caption mb-4">{{ authUser.email }}</p>
 
-            <v-btn color="primary" block @click="openProfileDialog"> Edit Profile </v-btn>
-
-            <!-- Logout button in dropdown for mobile -->
-            <v-btn
-              v-if="$vuetify.display.mdAndDown"
-              color="error"
-              block
-              class="mt-2"
-              @click="logout()"
-            >
-              Logout
+            <v-btn color="primary" block @click="openProfileDialog" class="mb-2">
+              Edit Profile
             </v-btn>
+
+            <v-btn color="error" block @click="logout()"> Logout </v-btn>
           </v-card-text>
         </v-card>
       </v-menu>
     </v-app-bar>
 
-    <!-- Navigation drawer for mobile - Without profile info -->
+    <!-- Navigation drawer for mobile -->
     <v-navigation-drawer
       v-model="drawer"
       temporary
@@ -299,14 +278,6 @@ export default {
             <v-icon>{{ item.icon }}</v-icon>
           </template>
           <v-list-item-title>{{ item.title }}</v-list-item-title>
-        </v-list-item>
-
-        <!-- Add theme toggle in drawer -->
-        <v-list-item @click="changeTheme">
-          <template v-slot:prepend>
-            <v-icon>{{ theme === 'light' ? 'mdi-weather-sunny' : 'mdi-weather-night' }}</v-icon>
-          </template>
-          <v-list-item-title>Toggle Theme</v-list-item-title>
         </v-list-item>
       </v-list>
     </v-navigation-drawer>
@@ -346,19 +317,23 @@ export default {
               </v-overlay>
             </v-avatar>
 
+            <!-- Improved mobile-friendly file input layout -->
             <div class="file-input-container">
               <v-file-input
                 accept="image/*"
                 label="Change avatar"
-                prepend-icon="mdi-camera"
                 @change="onAvatarChange"
                 hide-input
-                class="d-inline-block file-input"
+                class="file-input"
                 :disabled="profileIsUploading"
                 base-color="primary"
                 persistent-hint
                 hint="Select an image file"
-              ></v-file-input>
+              >
+                <template v-slot:prepend>
+                  <v-icon class="file-icon">mdi-camera</v-icon>
+                </template>
+              </v-file-input>
 
               <v-btn
                 v-if="avatarURL"
@@ -367,7 +342,7 @@ export default {
                 @click="removeAvatar"
                 :loading="profileIsUploading"
                 :disabled="profileIsUploading"
-                class="ml-2"
+                class="delete-btn"
               >
                 <v-icon>mdi-delete</v-icon>
               </v-btn>
@@ -431,18 +406,32 @@ body {
   position: relative;
 }
 
-/* Fixed-size file input */
+/* Fixed-size file input - improved for mobile */
 .file-input-container {
   display: flex;
   align-items: center;
   justify-content: center;
   margin-top: 16px;
-  flex-wrap: wrap;
+  position: relative;
+  width: 100%;
+  max-width: 280px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .file-input {
-  min-width: 200px !important;
+  width: 100%;
   height: 40px !important;
+}
+
+.file-icon {
+  margin-right: 8px;
+}
+
+.delete-btn {
+  position: absolute;
+  right: -48px;
+  top: 0;
 }
 
 /* Override Vuetify's dynamic width behavior */
@@ -468,19 +457,20 @@ body {
 
   .file-input-container {
     flex-direction: column;
+    padding-right: 50px; /* Make room for delete button */
   }
 
-  .file-input-container .v-btn {
-    margin-top: 12px;
-    margin-left: 0 !important;
+  .delete-btn {
+    top: 0;
+    right: -12px;
   }
 
   .email-verification-container {
-    margin-top: 30px;
+    margin-top: 40px;
   }
 
   .v-card-text {
-    padding: 16px 12px;
+    padding: 16px;
   }
 }
 
