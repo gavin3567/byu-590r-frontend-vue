@@ -47,7 +47,7 @@
             bg-color="transparent"
           />
 
-          <!-- Submit button -->
+          <!-- Submit button - responsive layout -->
           <div class="button-row">
             <v-btn
               color="#333"
@@ -107,6 +107,10 @@ export default defineComponent({
         (v) => !!v || 'Confirm password is required',
         (v) => v === this.resetForm.password || 'Passwords must match',
       ]
+    },
+    // Detect if screen is mobile size
+    isMobile() {
+      return this.$vuetify?.display?.smAndDown || false
     },
   },
   methods: {
@@ -184,10 +188,6 @@ export default defineComponent({
   height: 44px;
   padding: 0 20px;
   border-radius: 0;
-
-  &:hover {
-    background-color: #444 !important;
-  }
 }
 
 .secondary-buttons {
@@ -202,9 +202,39 @@ export default defineComponent({
   height: 44px;
   padding: 0 20px;
   border-radius: 0;
+}
 
-  &:hover {
-    color: white !important;
+/* Mobile optimizations */
+@media (max-width: 600px) {
+  .reset-password-page {
+    padding: 20px 12px;
+    align-items: center;
+  }
+
+  .login-title {
+    font-size: 20px;
+    text-align: center;
+  }
+
+  .button-row {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .login-btn {
+    width: 100%;
+  }
+
+  .secondary-buttons {
+    flex-direction: column;
+    width: 100%;
+    margin-left: 0;
+    margin-top: 16px;
+  }
+
+  .secondary-btn {
+    width: 100%;
+    justify-content: center;
   }
 }
 </style>

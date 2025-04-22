@@ -32,7 +32,7 @@
             bg-color="transparent"
           />
 
-          <!-- Buttons section in horizontal layout -->
+          <!-- Buttons section in horizontal layout, stacked on mobile -->
           <div class="button-row">
             <v-btn
               color="#333"
@@ -57,10 +57,20 @@
         </div>
       </v-form>
 
-      <!-- Registration Dialog -->
-      <v-dialog v-model="registerDialog" max-width="700px">
+      <!-- Registration Dialog - Made Responsive -->
+      <v-dialog v-model="registerDialog" max-width="700px" fullscreen-breakpoint="sm">
         <v-card>
-          <v-card-title>Register New Account</v-card-title>
+          <!-- Mobile friendly header -->
+          <v-toolbar v-if="$vuetify.display.smAndDown" dark color="#333">
+            <v-toolbar-title>Register New Account</v-toolbar-title>
+            <v-spacer></v-spacer>
+            <v-btn icon @click="registerDialog = false">
+              <v-icon>mdi-close</v-icon>
+            </v-btn>
+          </v-toolbar>
+
+          <v-card-title v-else>Register New Account</v-card-title>
+
           <v-card-text>
             <v-form v-model="isRegisterFormValid">
               <div class="d-flex flex-column pa-4" style="width: 100%">
@@ -111,17 +121,27 @@
               </div>
             </v-form>
           </v-card-text>
-          <v-card-actions>
+          <v-card-actions v-if="!$vuetify.display.smAndDown">
             <v-spacer />
             <v-btn color="grey" text @click="registerDialog = false"> Cancel </v-btn>
           </v-card-actions>
         </v-card>
       </v-dialog>
 
-      <!-- Forgot password dialog -->
-      <v-dialog v-model="passwordResetDialog" max-width="700px">
+      <!-- Forgot password dialog - Made Responsive -->
+      <v-dialog v-model="passwordResetDialog" max-width="700px" fullscreen-breakpoint="sm">
         <v-card>
-          <v-card-title>Reset Password</v-card-title>
+          <!-- Mobile friendly header -->
+          <v-toolbar v-if="$vuetify.display.smAndDown" dark color="#333">
+            <v-toolbar-title>Reset Password</v-toolbar-title>
+            <v-spacer></v-spacer>
+            <v-btn icon @click="closePasswordResetDialog">
+              <v-icon>mdi-close</v-icon>
+            </v-btn>
+          </v-toolbar>
+
+          <v-card-title v-else>Reset Password</v-card-title>
+
           <v-card-text>
             <v-form v-model="passwordResetFormIsValid">
               <div class="d-flex flex-column align-center justify-center pa-4" style="width: 100%">
@@ -137,12 +157,11 @@
                   label="Email"
                   type="email"
                   :rules="emailRules"
-                  class="mb-4"
-                  style="min-width: 550px"
+                  class="mb-4 password-reset-form"
                   :disabled="forgotPasswordSuccess"
                 />
 
-                <div v-if="!forgotPasswordSuccess">
+                <div v-if="!forgotPasswordSuccess" class="w-100">
                   <v-btn
                     color="primary"
                     block
@@ -155,7 +174,7 @@
                   </v-btn>
                 </div>
 
-                <div v-else>
+                <div v-else class="w-100">
                   <v-btn color="primary" block @click="goToResetPassword" class="mt-3">
                     Go to Reset Password Page
                   </v-btn>
@@ -163,7 +182,7 @@
               </div>
             </v-form>
           </v-card-text>
-          <v-card-actions>
+          <v-card-actions v-if="!$vuetify.display.smAndDown">
             <v-spacer />
             <v-btn color="grey" text @click="closePasswordResetDialog"> Close </v-btn>
           </v-card-actions>

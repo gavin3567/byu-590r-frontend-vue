@@ -59,6 +59,10 @@ export default defineComponent({
         (v: string) => v === this.register.password || 'Passwords must match',
       ]
     },
+    // Detect if screen is mobile size
+    isMobile() {
+      return this.$vuetify?.display?.smAndDown || false
+    },
   },
   methods: {
     submitLogin() {
