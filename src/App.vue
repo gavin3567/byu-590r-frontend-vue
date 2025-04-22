@@ -234,7 +234,7 @@ export default {
           Toggle Theme
         </v-btn>
       </div>
-      <!-- Theme toggle for mobile - always visible -->
+      <!-- Theme toggle for mobile ONLY -->
       <v-btn
         v-if="$vuetify.display.mdAndDown"
         :icon="theme === 'light' ? 'mdi-weather-sunny' : 'mdi-weather-night'"
