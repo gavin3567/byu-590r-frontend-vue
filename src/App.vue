@@ -3,20 +3,16 @@ import { RouterLink, RouterView } from 'vue-router'
 import LoginView from './views/login/LoginView.vue'
 import { mapState } from 'vuex'
 import { ref, computed } from 'vue'
-
 export default {
   setup() {
     const theme = ref('dark')
     const drawer = ref(false)
-
     function changeTheme() {
       theme.value = theme.value === 'light' ? 'dark' : 'light'
     }
-
     function toggleDrawer() {
       drawer.value = !drawer.value
     }
-
     return { theme, changeTheme, drawer, toggleDrawer }
   },
   name: 'App',
@@ -109,7 +105,6 @@ export default {
     if (this.isAuthenticated === true && !this.isResetPasswordRoute) {
       this.$router.push('/')
     }
-
     // Update app title based on current route
     this.updateAppTitle()
   },
@@ -210,7 +205,6 @@ export default {
   },
 }
 </script>
-
 <template>
   <v-app :theme="theme">
     <!-- App Bar when authenticated -->
@@ -222,15 +216,12 @@ export default {
           @click="toggleDrawer"
         ></v-app-bar-nav-icon>
       </template>
-
       <!-- Title with responsive design - only show on appropriate screen sizes -->
       <v-app-bar-title class="text-truncate">
         <span class="d-none d-md-block">{{ title }}</span>
         <span class="d-md-none">{{ appTitle }}</span>
       </v-app-bar-title>
-
       <v-spacer></v-spacer>
-
       <!-- Desktop navigation buttons -->
       <div class="d-none d-md-flex">
         <v-btn to="/" default>Home</v-btn>
@@ -242,9 +233,7 @@ export default {
         >
           Toggle Theme
         </v-btn>
-        <v-btn @click="logout()">Logout</v-btn>
       </div>
-
       <!-- Theme toggle for mobile - always visible -->
       <v-btn
         v-if="$vuetify.display.mdAndDown"
@@ -252,7 +241,6 @@ export default {
         @click="changeTheme"
         class="mr-2"
       ></v-btn>
-
       <!-- User avatar with dropdown menu -->
       <v-menu>
         <template v-slot:activator="{ props }">
@@ -263,19 +251,19 @@ export default {
             <span v-else class="text-h6">{{ userInitials }}</span>
           </v-avatar>
         </template>
-
         <v-card min-width="200">
           <v-card-title>Profile</v-card-title>
           <v-card-text>
             <p class="mb-2">{{ authUser.name }}</p>
             <p class="text-caption mb-4">{{ authUser.email }}</p>
-
-            <v-btn color="primary" block @click="openProfileDialog"> Edit Profile </v-btn>
+            <v-btn color="primary" block @click="openProfileDialog" class="mb-2">
+              Edit Profile
+            </v-btn>
+            <v-btn color="error" block @click="logout()">Logout</v-btn>
           </v-card-text>
         </v-card>
       </v-menu>
     </v-app-bar>
-
     <!-- Navigation drawer for mobile -->
     <v-navigation-drawer
       v-model="drawer"
@@ -292,7 +280,6 @@ export default {
         </v-list-item>
       </v-list>
     </v-navigation-drawer>
-
     <!-- Profile Dialog - made responsive -->
     <v-dialog v-model="profileDialog" max-width="500" fullscreen-breakpoint="sm">
       <v-card>
@@ -302,9 +289,7 @@ export default {
           </v-btn>
           <v-toolbar-title>Edit Profile</v-toolbar-title>
         </v-toolbar>
-
         <v-card-title v-else>Edit Profile</v-card-title>
-
         <v-card-text class="pa-4">
           <div class="text-center mb-4">
             <v-avatar size="100" class="mb-3 position-relative">
@@ -317,7 +302,6 @@ export default {
               <v-icon v-else-if="!profileIsUploading" size="80" color="grey"
                 >mdi-account-circle</v-icon
               >
-
               <!-- Loading overlay -->
               <v-overlay
                 v-if="profileIsUploading"
@@ -327,7 +311,6 @@ export default {
                 <v-progress-circular indeterminate color="primary"></v-progress-circular>
               </v-overlay>
             </v-avatar>
-
             <!-- Improved mobile-friendly file input layout -->
             <div class="file-input-container">
               <v-file-input
@@ -345,7 +328,6 @@ export default {
                   <v-icon class="file-icon">mdi-camera</v-icon>
                 </template>
               </v-file-input>
-
               <v-btn
                 v-if="avatarURL"
                 color="error"
@@ -359,7 +341,6 @@ export default {
               </v-btn>
             </div>
           </div>
-
           <!-- Email verification section -->
           <div class="email-verification-container">
             <v-alert
@@ -383,18 +364,15 @@ export default {
             </v-alert>
           </div>
         </v-card-text>
-
         <v-card-actions v-if="!$vuetify.display.smAndDown">
           <v-spacer></v-spacer>
           <v-btn color="primary" @click="profileDialog = false">Close</v-btn>
         </v-card-actions>
-
         <v-card-actions v-else class="pb-4">
           <v-btn color="primary" block @click="profileDialog = false">Close</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
-
     <v-main>
       <v-container fluid class="pa-2 pa-sm-4">
         <!-- Show the router view for authenticated users and reset password route -->
@@ -405,18 +383,15 @@ export default {
     </v-main>
   </v-app>
 </template>
-
 <style>
 /* Global styles */
 body {
   background-color: #121212;
   color: white;
 }
-
 .position-relative {
   position: relative;
 }
-
 /* Fixed-size file input - improved for mobile */
 .file-input-container {
   display: flex;
@@ -429,67 +404,61 @@ body {
   margin-left: auto;
   margin-right: auto;
 }
-
 .file-input {
   width: 100%;
   height: 40px !important;
 }
-
 .file-icon {
   margin-right: 8px;
 }
-
 .delete-btn {
   position: absolute;
   right: -48px;
   top: 0;
 }
-
 /* Override Vuetify's dynamic width behavior */
 .v-input--density-default {
   --v-input-control-height: 40px !important;
 }
-
 .v-field__input {
   min-height: 40px !important;
 }
-
 /* Container for email verification to keep it separated */
 .email-verification-container {
   margin-top: 60px;
   clear: both;
 }
-
 /* Mobile optimizations */
 @media (max-width: 600px) {
   .v-app-bar .v-btn {
     margin-right: 4px;
   }
-
   .file-input-container {
-    flex-direction: column;
-    padding-right: 50px; /* Make room for delete button */
+    display: flex;
+    flex-direction: row; /* Change to row for mobile */
+    align-items: center;
+    position: relative;
+    padding-right: 0; /* Remove padding */
+    width: 100%;
   }
-
+  .file-input {
+    width: calc(100% - 48px); /* Make room for delete button */
+  }
   .delete-btn {
-    top: 0;
-    right: -12px;
+    position: static; /* Not absolute positioned on mobile */
+    margin-left: 8px; /* Add some spacing */
   }
-
   .email-verification-container {
     margin-top: 40px;
   }
-
   .v-card-text {
     padding: 16px;
   }
 }
-
 /* Ensure buttons have proper spacing */
 .v-btn {
   text-transform: none;
 }
-
 /* Make dialogs edge-to-edge on mobile */
 @media (max-width: 600px) {
   .v-dialog {
